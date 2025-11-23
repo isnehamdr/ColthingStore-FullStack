@@ -1,0 +1,245 @@
+
+{
+  "products": [
+    {
+      "id": 1,
+      "slug": "washed-blue-denim-jacket",
+      "name": "Washed Blue Denim Jacket",
+      "price": 99.00,
+      "original_price": 129.00,
+      "discount_price": 99.00,
+      "category": "Jackets",
+      "description": "Classic denim jacket with a comfortable washed finish. Perfect for layering over any outfit.",
+      "image_url": "/images/t1.avif",
+      "images": [
+        {
+          "id": 1,
+          "image_path": "/images/t1.avif",
+          "alt_text": "Washed Blue Denim Jacket front view"
+        },
+        {
+          "id": 2,
+          "image_path": "/images/c1.avif",
+          "alt_text": "Washed Blue Denim Jacket back view"
+        },
+        {
+          "id": 3,
+          "image_path": "/images/c2.avif",
+          "alt_text": "Washed Blue Denim Jacket side view"
+        },
+        {
+          "id": 4,
+          "image_path": "/images/c3.avif",
+          "alt_text": "Washed Blue Denim Jacket detail view"
+        }
+      ],
+      "sizes": ["XS", "S", "M", "L", "XL"],
+      "colors": ["Light Blue", "Medium Blue", "Dark Blue"],
+      "rating": 4.5,
+      "reviews_count": 28,
+      "stock": 15,
+      "in_stock": true,
+      "is_new": false,
+      "on_sale": true,
+      "seller_id": 1,
+      "seller_name": "Roon Apparel",
+      "features": [
+        "Premium denim material",
+        "Comfortable washed finish",
+        "Classic fit",
+        "Versatile styling options"
+      ],
+      "care_instructions": [
+        "Machine wash cold",
+        "Do not bleach",
+        "Tumble dry low",
+        "Iron on low heat"
+      ],
+      "sku": "DJ001-BL",
+      "created_at": "2024-01-15T00:00:00Z",
+      "updated_at": "2024-01-15T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "slug": "classic-white-t-shirt",
+      "name": "Classic White T-Shirt",
+      "price": 49.00,
+      "original_price": 69.00,
+      "discount_price": 49.00,
+      "category": "T-Shirts",
+      "description": "Essential white t-shirt made from premium cotton. The perfect foundation for any wardrobe.",
+      "image_url": "/images/t2.avif",
+      "images": [
+        {
+          "id": 5,
+          "image_path": "/images/t2.avif",
+          "alt_text": "Classic White T-Shirt front view"
+        },
+        {
+          "id": 6,
+          "image_path": "/images/t2.avif",
+          "alt_text": "Classic White T-Shirt back view"
+        },
+        {
+          "id": 7,
+          "image_path": "/images/c2.avif",
+          "alt_text": "Classic White T-Shirt side view"
+        },
+        {
+          "id": 8,
+          "image_path": "/images/c3.avif",
+          "alt_text": "Classic White T-Shirt detail view"
+        }
+      ],
+      "sizes": ["XS", "S", "M", "L", "XL", "XXL"],
+      "colors": ["White", "Off-White", "Cream"],
+      "rating": 4.8,
+      "reviews_count": 42,
+      "stock": 25,
+      "in_stock": true,
+      "is_new": true,
+      "on_sale": true,
+      "seller_id": 1,
+      "seller_name": "Roon Apparel",
+      "features": [
+        "100% premium cotton",
+        "Regular fit",
+        "Reinforced neckline",
+        "Easy to care for"
+      ],
+      "care_instructions": [
+        "Machine wash cold",
+        "Do not bleach",
+        "Tumble dry low",
+        "Iron on medium heat"
+      ],
+      "sku": "TS002-WH",
+      "created_at": "2024-01-20T00:00:00Z",
+      "updated_at": "2024-01-20T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "slug": "slim-black-trousers",
+      "name": "Slim Black Trousers",
+      "price": 89.00,
+      "original_price": 119.00,
+      "discount_price": 89.00,
+      "category": "Pants",
+      "description": "Elegant slim-fit trousers in classic black. Ideal for both formal and casual occasions.",
+      "image_url": "/images/t3.avif",
+      "images": [
+        {
+          "id": 9,
+          "image_path": "/images/t3.avif",
+          "alt_text": "Slim Black Trousers front view"
+        },
+        {
+          "id": 10,
+          "image_path": "/images/t3.avif",
+          "alt_text": "Slim Black Trousers back view"
+        },
+        {
+          "id": 11,
+          "image_path": "/images/c2.avif",
+          "alt_text": "Slim Black Trousers side view"
+        },
+        {
+          "id": 12,
+          "image_path": "/images/c4.avif",
+          "alt_text": "Slim Black Trousers detail view"
+        }
+      ],
+      "sizes": ["28", "30", "32", "34", "36"],
+      "colors": ["Black", "Charcoal", "Navy"],
+      "rating": 4.3,
+      "reviews_count": 31,
+      "stock": 18,
+      "in_stock": true,
+      "is_new": false,
+      "on_sale": true,
+      "seller_id": 1,
+      "seller_name": "Roon Apparel",
+      "features": [
+        "Slim fit design",
+        "Premium fabric",
+        "Comfortable waistband",
+        "Versatile styling"
+      ],
+      "care_instructions": [
+        "Dry clean recommended",
+        "Iron on low heat",
+        "Do not tumble dry",
+        "Store on hanger"
+      ],
+      "sku": "PT003-BK",
+      "created_at": "2024-01-10T00:00:00Z",
+      "updated_at": "2024-01-10T00:00:00Z"
+    },
+    {
+      "id": 4,
+      "slug": "knit-beanie-hat",
+      "name": "Knit Beanie Hat",
+      "price": 29.00,
+      "original_price": 39.00,
+      "discount_price": 29.00,
+      "category": "Accessories",
+      "description": "Soft knit beanie for cooler days. Comfortable, stylish, and versatile.",
+      "image_url": "/images/t4.avif",
+      "images": [
+        {
+          "id": 13,
+          "image_path": "/images/t4.avif",
+          "alt_text": "Knit Beanie Hat front view"
+        },
+        {
+          "id": 14,
+          "image_path": "/images/t4.avif",
+          "alt_text": "Knit Beanie Hat back view"
+        },
+        {
+          "id": 15,
+          "image_path": "/images/c1.avif",
+          "alt_text": "Knit Beanie Hat side view"
+        },
+        {
+          "id": 16,
+          "image_path": "/images/c2.avif",
+          "alt_text": "Knit Beanie Hat detail view"
+        }
+      ],
+      "sizes": ["One Size"],
+      "colors": ["Black", "Gray", "Navy", "Cream"],
+      "rating": 4.6,
+      "reviews_count": 19,
+      "stock": 30,
+      "in_stock": true,
+      "is_new": true,
+      "on_sale": true,
+      "seller_id": 1,
+      "seller_name": "Roon Apparel",
+      "features": [
+        "Soft knit material",
+        "One size fits most",
+        "Comfortable fit",
+        "Versatile accessory"
+      ],
+      "care_instructions": [
+        "Hand wash recommended",
+        "Lay flat to dry",
+        "Do not tumble dry",
+        "Do not iron"
+      ],
+      "sku": "AC004-BK",
+      "created_at": "2024-01-25T00:00:00Z",
+      "updated_at": "2024-01-25T00:00:00Z"
+    }
+  ],
+  "meta": {
+    "total": 4,
+    "per_page": 20,
+    "current_page": 1,
+    "last_page": 1,
+    "from": 1,
+    "to": 4
+  }
+}
