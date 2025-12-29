@@ -7,7 +7,7 @@ const Footer = () => {
         {/* First Div - Company Name and Description */}
         <div className="lg:col-span-2 lg:row-span-1 bg-[#bebaa7] p-8 border border-gray-700">
           <h2 className="text-3xl  font-md mb-4 uppercase">RoonApparel</h2>
-          <p className="mb-8">
+          <p className="mb-6">
             We create innovative solutions for the digital world. Our mission is to help businesses grow with cutting-edge technology and exceptional service.
           </p>
         </div>
