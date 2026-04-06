@@ -10,6 +10,8 @@ import {
   FiCheckCircle,
 } from 'react-icons/fi';
 
+const IMAGE_PATH = import.meta.env.VITE_IMAGE_PATH || 'http://127.0.0.1:8000/storage';
+
 const AdminNavbar = ({ toggleSidebar, userDropdownOpen, toggleUserDropdown }) => {
   const { auth } = usePage().props;
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,28 +35,24 @@ const AdminNavbar = ({ toggleSidebar, userDropdownOpen, toggleUserDropdown }) =>
     });
   };
 
-  // Handle search functionality
   const handleSearch = (e) => {
     e.preventDefault();
-
     if (!searchQuery.trim()) return;
     console.log('Searching for:', searchQuery);
-
-    // Example: You can integrate with an API route here
-    // axios.get(`/api/search?query=${searchQuery}`).then(res => console.log(res.data));
   };
 
-  // Mark all notifications as read
   const markAllAsRead = () => {
-    const updated = notifications.map((n) => ({ ...n, read: true }));
-    setNotifications(updated);
+    setNotifications(notifications.map((n) => ({ ...n, read: true })));
   };
 
-  // Unread count
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // User image handling
-  const userImage = auth?.user?.image ? `/storage/${auth.user.image}` : null;
+  // ✅ Fixed: controller stores "users/filename.jpg", so just use IMAGE_PATH + image
+  // Result: http://127.0.0.1:8000/storage/users/filename.jpg  ✅
+  // NOT:    /storage/users/filename.jpg (the old broken path)  ❌
+  const userImage = auth?.user?.image
+    ? `${IMAGE_PATH}/${auth.user.image}`
+    : null;
 
   return (
     <header className="bg-white border-b border-gray-200">
@@ -96,15 +94,11 @@ const AdminNavbar = ({ toggleSidebar, userDropdownOpen, toggleUserDropdown }) =>
               )}
             </button>
 
-            {/* Dropdown */}
             {notificationOpen && (
               <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-40">
                 <div className="flex justify-between items-center px-4 py-2 border-b">
                   <h4 className="text-sm font-semibold text-gray-700">Notifications</h4>
-                  <button
-                    onClick={markAllAsRead}
-                    className="text-xs text-indigo-600 hover:underline"
-                  >
+                  <button onClick={markAllAsRead} className="text-xs text-indigo-600 hover:underline">
                     Mark all as read
                   </button>
                 </div>
@@ -116,9 +110,7 @@ const AdminNavbar = ({ toggleSidebar, userDropdownOpen, toggleUserDropdown }) =>
                     {notifications.map((n) => (
                       <li
                         key={n.id}
-                        className={`px-4 py-2 text-sm flex items-center space-x-2 hover:bg-gray-50 ${
-                          !n.read ? 'bg-indigo-50' : ''
-                        }`}
+                        className={`px-4 py-2 text-sm flex items-center space-x-2 hover:bg-gray-50 ${!n.read ? 'bg-indigo-50' : ''}`}
                       >
                         {n.read ? (
                           <FiCheckCircle className="text-gray-400" />
@@ -136,23 +128,29 @@ const AdminNavbar = ({ toggleSidebar, userDropdownOpen, toggleUserDropdown }) =>
 
           {/* User Dropdown */}
           <div className="ml-4 relative">
-            <button
-              onClick={toggleUserDropdown}
-              className="flex items-center focus:outline-none"
-            >
+            <button onClick={toggleUserDropdown} className="flex items-center focus:outline-none">
               {userImage ? (
                 <img
                   src={userImage}
                   alt="User Avatar"
                   className="h-8 w-8 rounded-full object-cover border border-gray-300"
+                  onError={(e) => {
+                    // ✅ If image fails to load, fall back to initials avatar
+                    e.target.onerror = null;
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
                 />
-              ) : (
-                <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                  <span className="text-indigo-700 font-medium">
-                    {auth?.user?.name?.substring(0, 2).toUpperCase() || 'U'}
-                  </span>
-                </div>
-              )}
+              ) : null}
+              {/* Fallback initials avatar — shown if no image or image fails */}
+              <div
+                className="h-8 w-8 rounded-full bg-indigo-100 items-center justify-center"
+                style={{ display: userImage ? 'none' : 'flex' }}
+              >
+                <span className="text-indigo-700 font-medium text-sm">
+                  {auth?.user?.name?.substring(0, 2).toUpperCase() || 'U'}
+                </span>
+              </div>
 
               <div className="ml-2 hidden md:block text-left">
                 <p className="text-sm font-medium text-gray-800">{auth?.user?.name}</p>

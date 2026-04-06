@@ -87,10 +87,7 @@ class UserController extends Controller
 
         $user->update($validated);
 
-        return response()->json([
-            'message' => 'User updated successfully!',
-            'data' => $user->fresh(),
-        ]);
+       return redirect()->back();
     }
 
     /**
@@ -111,4 +108,5 @@ class UserController extends Controller
             'message' => 'User deleted successfully!',
         ]);
     }
+    
 }

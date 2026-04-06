@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { usePage } from '@inertiajs/react';
 
 const Order = () => {
+  const { auth } = usePage().props;
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [updatingOrder, setUpdatingOrder] = useState(null);
+  
+  const isAdmin = auth?.user?.role === 'admin';
 
-  // Fetch all orders
+  // Fetch orders based on role (backend handles filtering)
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -49,39 +53,45 @@ const Order = () => {
     }
   };
 
-  // Update order status
-  const updateOrderStatus = async (orderId, newStatus) => {
+  // Cancel order (for customers)
+  const cancelOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to cancel this order?')) {
+      return;
+    }
+
     try {
       setUpdatingOrder(orderId);
       const response = await axios.put(route('ourorders.update', { id: orderId }), {
-        status: newStatus,
-        _method: 'PUT' // If you're using Laravel and need to spoise PUT method
+        status: 'cancelled',
+        _method: 'PUT'
       });
 
       if (response.data.success) {
         // Update local state
         setOrders(prevOrders => 
           prevOrders.map(order => 
-            order.id === orderId ? { ...order, status: newStatus } : order
+            order.id === orderId ? { ...order, status: 'cancelled' } : order
           )
         );
         
         // Update selected order if it's the one being viewed
         if (selectedOrder && selectedOrder.id === orderId) {
-          setSelectedOrder(prev => ({ ...prev, status: newStatus }));
+          setSelectedOrder(prev => ({ ...prev, status: 'cancelled' }));
         }
+        
+        alert('Order cancelled successfully');
       } else {
-        setError('Failed to update order status');
+        setError(response.data.message || 'Failed to cancel order');
       }
     } catch (err) {
-      console.error('Error updating order:', err);
-      setError('Failed to update order status.');
+      console.error('Error cancelling order:', err);
+      setError(err.response?.data?.message || 'Failed to cancel order.');
     } finally {
       setUpdatingOrder(null);
     }
   };
 
-  // Delete order
+  // Delete order (admin only)
   const deleteOrder = async (orderId) => {
     if (!window.confirm('Are you sure you want to delete this order?')) {
       return;
@@ -106,6 +116,11 @@ const Order = () => {
       console.error('Error deleting order:', err);
       setError('Failed to delete order.');
     }
+  };
+
+  // Check if order can be cancelled (only pending or processing orders)
+  const canCancelOrder = (status) => {
+    return ['pending', 'processing'].includes(status.toLowerCase());
   };
 
   // Format currency
@@ -169,14 +184,22 @@ const Order = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="bg-white rounded-lg shadow-md">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h1 className="text-2xl font-bold text-gray-800">Orders Management</h1>
-          <p className="text-gray-600 mt-1">Manage and view customer orders</p>
+          <h1 className="text-2xl font-bold text-gray-800">
+            {isAdmin ? 'Orders Management' : 'My Orders'}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            {isAdmin ? 'Manage and view customer orders' : 'View and track your orders'}
+          </p>
         </div>
 
         {orders.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 text-lg">No orders found</div>
-            <p className="text-gray-400 mt-2">Orders will appear here once customers place them.</p>
+            <p className="text-gray-400 mt-2">
+              {isAdmin 
+                ? 'Orders will appear here once customers place them.' 
+                : 'You haven\'t placed any orders yet.'}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -186,9 +209,11 @@ const Order = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Order Number
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
-                  </th>
+                  {isAdmin && (
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Customer
+                    </th>
+                  )}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
                   </th>
@@ -211,12 +236,14 @@ const Order = () => {
                         {order.order_number}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {order.first_name} {order.last_name}
-                      </div>
-                      <div className="text-sm text-gray-500">{order.email}</div>
-                    </td>
+                    {isAdmin && (
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {order.first_name} {order.last_name}
+                        </div>
+                        <div className="text-sm text-gray-500">{order.email}</div>
+                      </td>
+                    )}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(order.created_at)}
                     </td>
@@ -236,12 +263,24 @@ const Order = () => {
                         >
                           View
                         </button>
-                        <button
-                          onClick={() => deleteOrder(order.id)}
-                          className="text-red-600 hover:text-red-900 transition-colors"
-                        >
-                          Delete
-                        </button>
+                        {isAdmin ? (
+                          <button
+                            onClick={() => deleteOrder(order.id)}
+                            className="text-red-600 hover:text-red-900 transition-colors"
+                          >
+                            Delete
+                          </button>
+                        ) : (
+                          canCancelOrder(order.status) && (
+                            <button
+                              onClick={() => cancelOrder(order.id)}
+                              disabled={updatingOrder === order.id}
+                              className="text-red-600 hover:text-red-900 transition-colors disabled:opacity-50"
+                            >
+                              {updatingOrder === order.id ? 'Cancelling...' : 'Cancel'}
+                            </button>
+                          )
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -252,7 +291,7 @@ const Order = () => {
         )}
       </div>
 
-      {/* Order Details Modal */}
+      {/* Order Details Modal - Keep the same as before */}
       {showModal && selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -273,7 +312,7 @@ const Order = () => {
             </div>
 
             <div className="p-6 space-y-6">
-              {/* Order Status */}
+              {/* Order Status - Only admin can change status */}
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-sm font-medium text-gray-500">Status:</span>
@@ -281,20 +320,6 @@ const Order = () => {
                     {selectedOrder.status}
                   </span>
                 </div>
-                <select
-                  value={selectedOrder.status}
-                  onChange={(e) => updateOrderStatus(selectedOrder.id, e.target.value)}
-                  disabled={updatingOrder === selectedOrder.id}
-                  className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="pending">Pending</option>
-                  <option value="processing">Processing</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-                {updatingOrder === selectedOrder.id && (
-                  <span className="text-sm text-gray-500 ml-2">Updating...</span>
-                )}
               </div>
 
               {/* Customer Information */}
@@ -373,12 +398,24 @@ const Order = () => {
             </div>
 
             <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end space-x-3">
-              <button
-                onClick={() => deleteOrder(selectedOrder.id)}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-              >
-                Delete Order
-              </button>
+              {isAdmin ? (
+                <button
+                  onClick={() => deleteOrder(selectedOrder.id)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  Delete Order
+                </button>
+              ) : (
+                canCancelOrder(selectedOrder.status) && (
+                  <button
+                    onClick={() => cancelOrder(selectedOrder.id)}
+                    disabled={updatingOrder === selectedOrder.id}
+                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
+                  >
+                    {updatingOrder === selectedOrder.id ? 'Cancelling...' : 'Cancel Order'}
+                  </button>
+                )
+              )}
               <button
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"

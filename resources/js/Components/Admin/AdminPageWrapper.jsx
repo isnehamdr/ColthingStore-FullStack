@@ -28,17 +28,18 @@ const AdminPageWrapper = ({ children}) => {
 
   // Navigation items for the sidebar
   const navigationItems = [
-    { name: 'Dashboard', href: '/store', icon: FiHome },
+    { name: 'Dashboard', href: '/dashboard', icon: FiHome },
   
     { name: 'Orders', href: '/order', icon: FiShoppingCart },
     // { name: 'Customers', href: '/customer', icon: FiUsers },
     ...(isAdmin ? [
       { name: 'Products', href: '/product', icon: FiPackage },
       { name: 'Users', href: '/user', icon: FiUsers },
-      { name: 'Activity Log', href: '/activitylog', icon: FiActivity }
-    ] : []),
-    { name: 'Analytics', href: '/analytics', icon: FiBarChart2 },
+      { name: 'Activity Log', href: '/activitylog', icon: FiActivity },
+        { name: 'Analytics', href: '/analytics', icon: FiBarChart2 },
     { name: 'Settings', href: '/setting', icon: FiSettings },
+    ] : []),
+  
   ];
 
   return (
