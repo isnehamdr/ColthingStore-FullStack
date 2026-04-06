@@ -1,6 +1,6 @@
-# ClothingStore Full Stack
+# ClothingStore
 
-ClothingStore Full Stack is a Laravel 12 + React/Inertia ecommerce application for browsing clothing products, managing orders, and running an admin dashboard. The project includes customer shopping flows, authentication, Google sign-in, order confirmation email support, and a Google Analytics reporting page.
+ClothingStore  is a Laravel 12 + React/Inertia ecommerce application for browsing clothing products, managing orders, and running an admin dashboard. The project includes customer shopping flows, authentication, Google sign-in, order confirmation email support, and a Google Analytics reporting page.
 
 ## Features
 
