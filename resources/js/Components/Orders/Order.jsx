@@ -10,6 +10,8 @@ const Order = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [updatingOrder, setUpdatingOrder] = useState(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const imagepath= import.meta.env.VITE_IMAGE_PATH
   
   const isAdmin = auth?.user?.role === 'admin';
 
@@ -50,6 +52,44 @@ const Order = () => {
     } catch (err) {
       console.error('Error fetching order details:', err);
       setError('Failed to load order details.');
+    }
+  };
+
+  // Update order status (admin only)
+  const updateOrderStatus = async (orderId, newStatus) => {
+    if (!window.confirm(`Are you sure you want to change status to ${newStatus}?`)) {
+      return;
+    }
+
+    try {
+      setUpdatingStatus(true);
+      const response = await axios.put(route('ourorders.update', { id: orderId }), {
+        status: newStatus,
+        _method: 'PUT'
+      });
+
+      if (response.data.success) {
+        // Update local state
+        setOrders(prevOrders => 
+          prevOrders.map(order => 
+            order.id === orderId ? { ...order, status: newStatus } : order
+          )
+        );
+        
+        // Update selected order if it's the one being viewed
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setSelectedOrder(prev => ({ ...prev, status: newStatus }));
+        }
+        
+        alert(`Order status updated to ${newStatus} successfully`);
+      } else {
+        setError(response.data.message || 'Failed to update order status');
+      }
+    } catch (err) {
+      console.error('Error updating order status:', err);
+      setError(err.response?.data?.message || 'Failed to update order status.');
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
@@ -291,7 +331,7 @@ const Order = () => {
         )}
       </div>
 
-      {/* Order Details Modal - Keep the same as before */}
+      {/* Order Details Modal - With Admin Status Change */}
       {showModal && selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -312,14 +352,40 @@ const Order = () => {
             </div>
 
             <div className="p-6 space-y-6">
-              {/* Order Status - Only admin can change status */}
+              {/* Order Status - Admin can change status */}
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex items-center space-x-4">
                   <span className="text-sm font-medium text-gray-500">Status:</span>
-                  <span className={`ml-2 px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(selectedOrder.status)}`}>
-                    {selectedOrder.status}
-                  </span>
+                  {isAdmin ? (
+                    <div className="flex items-center space-x-2">
+                      <select
+                        value={selectedOrder.status}
+                        onChange={(e) => updateOrderStatus(selectedOrder.id, e.target.value)}
+                        disabled={updatingStatus}
+                        className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                      {updatingStatus && (
+                        <span className="text-sm text-gray-500">Updating...</span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className={`ml-2 px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(selectedOrder.status)}`}>
+                      {selectedOrder.status}
+                    </span>
+                  )}
                 </div>
+                
+                {/* Show last updated timestamp if available */}
+                {selectedOrder.updated_at && selectedOrder.updated_at !== selectedOrder.created_at && (
+                  <div className="text-xs text-gray-400">
+                    Last updated: {formatDate(selectedOrder.updated_at)}
+                  </div>
+                )}
               </div>
 
               {/* Customer Information */}
@@ -352,7 +418,7 @@ const Order = () => {
                     <div key={index} className="flex items-center p-4 border-b border-gray-200 last:border-b-0">
                       {item.image && (
                         <img
-                          src={`/storage/${item.image}`}
+                          src={`${imagepath}/${item.image}`}
                           alt={item.product_name}
                           className="w-16 h-16 object-cover rounded-md mr-4"
                           onError={(e) => {

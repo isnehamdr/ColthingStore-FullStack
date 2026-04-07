@@ -1,5 +1,6 @@
 // components/Navbar.js
 import React, {useState, useEffect, useRef} from 'react';
+import axios from 'axios';
 import {
 	Menu,
 	Minus,
@@ -15,6 +16,30 @@ import {
 } from 'lucide-react';
 import {useCart} from '../../contexts/CartContext';
 import {Link, usePage, router} from '@inertiajs/react';
+
+const DEFAULT_AVATAR = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f3f4f6'/><circle cx='50' cy='38' r='20' fill='%236b7280'/><ellipse cx='50' cy='82' rx='30' ry='18' fill='%236b7280'/></svg>`;
+
+const getUserImage = (user) => {
+	const imagePath = user?.image || user?.avatar;
+	if (!imagePath || typeof imagePath !== 'string') return DEFAULT_AVATAR;
+	const value = imagePath.trim();
+	if (!value) return DEFAULT_AVATAR;
+	if (
+		value.startsWith('http://') ||
+		value.startsWith('https://') ||
+		value.startsWith('blob:') ||
+		value.startsWith('data:')
+	) {
+		return value;
+	}
+	if (value.startsWith('/storage/') || value.startsWith('/images/')) {
+		return value;
+	}
+	if (value.startsWith('storage/') || value.startsWith('images/')) {
+		return `/${value}`;
+	}
+	return `/storage/${value.replace(/^\/+/, '')}`;
+};
 
 const Navbar = ({onMenuClick}) => {
 	const [isHidden, setIsHidden] = useState(false);
@@ -46,6 +71,7 @@ const Navbar = ({onMenuClick}) => {
 
 	const {auth} = usePage().props;
 	const isLoggedIn = !!auth.user;
+	const userImage = getUserImage(auth.user);
 
 	// Hide navbar on scroll
 	const controlNavbar = () => {
@@ -321,7 +347,19 @@ const Navbar = ({onMenuClick}) => {
 										aria-label="User menu"
 										aria-expanded={showUserDropdown}
 									>
-										<User className="w-5 h-5"/>
+										{isLoggedIn ? (
+											<img
+												src={userImage}
+												alt={auth.user?.name || 'User'}
+												className="w-8 h-8 rounded-full object-cover border border-gray-200"
+												onError={(e) => {
+													e.target.onerror = null;
+													e.target.src = DEFAULT_AVATAR;
+												}}
+											/>
+										) : (
+											<User className="w-5 h-5"/>
+										)}
 									</button>
 
 									{/* Dropdown menu */}

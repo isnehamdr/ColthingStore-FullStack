@@ -43,6 +43,7 @@ class GoogleAuthController extends Controller
                     'name' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
                     'google_id' => $googleUser->getId(),
+                    'image' => $googleUser->getAvatar(),
                     'avatar' => $googleUser->getAvatar(),
                     'password' => Hash::make(Str::random(24)),
                     'email_verified_at' => now(),
@@ -55,6 +56,7 @@ class GoogleAuthController extends Controller
                     $user->update([
                         'google_id' => $googleUser->getId(),
                         'avatar' => $googleUser->getAvatar(),
+                        'image' => $user->image ?: $googleUser->getAvatar(),
                     ]);
                 }
 
@@ -67,7 +69,7 @@ class GoogleAuthController extends Controller
             \Log::info('Customer logged in successfully, redirecting to home page');
 
             // Redirect to home page
-            return redirect()->route('/');
+            return redirect()->route('home');
 
         } catch (\Exception $e) {
             \Log::error('Google OAuth Error: ' . $e->getMessage());

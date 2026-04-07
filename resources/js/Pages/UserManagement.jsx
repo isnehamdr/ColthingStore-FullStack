@@ -3,6 +3,30 @@ import { Search, UserPlus, MoreVertical, Mail, Shield, Loader, Edit, Trash2, X, 
 import AdminPageWrapper from '@/Components/Admin/AdminPageWrapper';
 import axios from 'axios';
 
+const DEFAULT_AVATAR = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f3f4f6'/><circle cx='50' cy='38' r='20' fill='%236b7280'/><ellipse cx='50' cy='82' rx='30' ry='18' fill='%236b7280'/></svg>`;
+
+const getUserImage = (user) => {
+  const imagePath = user?.image || user?.avatar;
+  if (!imagePath || typeof imagePath !== 'string') return DEFAULT_AVATAR;
+  const value = imagePath.trim();
+  if (!value) return DEFAULT_AVATAR;
+  if (
+    value.startsWith('http://') ||
+    value.startsWith('https://') ||
+    value.startsWith('blob:') ||
+    value.startsWith('data:')
+  ) {
+    return value;
+  }
+  if (value.startsWith('/storage/') || value.startsWith('/images/')) {
+    return value;
+  }
+  if (value.startsWith('storage/') || value.startsWith('images/')) {
+    return `/${value}`;
+  }
+  return `/storage/${value.replace(/^\/+/, '')}`;
+};
+
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState([]);
@@ -296,7 +320,7 @@ const UserManagement = () => {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <img
-                      src={user.image || `https://i.pravatar.cc/150?img=${user.id % 50}`}
+                      src={getUserImage(user)}
                       alt={user.name}
                       className="w-16 h-16 rounded-full border-2 border-slate-100 group-hover:border-blue-200 transition-colors object-cover"
                     />

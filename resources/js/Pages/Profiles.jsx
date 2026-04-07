@@ -21,6 +21,32 @@ import Footer from "@/Components/ClothingStore/Footer";
 import { usePage, router } from "@inertiajs/react";
 import { useCart } from '../contexts/CartContext';
 
+const DEFAULT_AVATAR = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f3f4f6'/><circle cx='50' cy='38' r='20' fill='%236b7280'/><ellipse cx='50' cy='82' rx='30' ry='18' fill='%236b7280'/></svg>`;
+const DEFAULT_PRODUCT_IMAGE = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' fill='%23f3f4f6'/><rect x='24' y='22' width='72' height='76' rx='8' fill='%23d1d5db'/><path d='M36 84l18-20 14 14 16-22 12 28H36z' fill='%239ca3af'/></svg>`;
+
+const getImageUrl = (imagePath, fallback = DEFAULT_AVATAR) => {
+  if (!imagePath || typeof imagePath !== "string") return fallback;
+  const value = imagePath.trim();
+  if (!value) return fallback;
+  if (
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    value.startsWith("blob:") ||
+    value.startsWith("data:")
+  ) {
+    return value;
+  }
+  if (value.startsWith("/storage/") || value.startsWith("/images/")) {
+    return value;
+  }
+  if (value.startsWith("storage/") || value.startsWith("images/")) {
+    return `/${value}`;
+  }
+  return `/storage/${value.replace(/^\/+/, "")}`;
+};
+
+const getUserImage = (user) => getImageUrl(user?.image || user?.avatar, DEFAULT_AVATAR);
+
 const Profiles = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
@@ -29,6 +55,7 @@ const Profiles = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(DEFAULT_AVATAR);
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState({
@@ -53,25 +80,11 @@ const Profiles = () => {
   const { auth } = usePage().props;
   const currentUser = auth.user;
 
-  // Fetch user data
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        if (currentUser) {
-          setUserData(currentUser);
-          setEditData(currentUser);
-        } else {
-          const response = await axios.get(route("users.show", { user: currentUser?.id }));
-          setUserData(response.data);
-          setEditData(response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
+    setUserData(currentUser || null);
+    setEditData(currentUser || {});
+    setImagePreview(getUserImage(currentUser));
+    setLoading(false);
   }, [currentUser]);
 
   // Fetch orders when orders tab is active
@@ -111,14 +124,6 @@ const Profiles = () => {
     }
   };
 
-  // Helper function to get image URL
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return "/images/default-product.jpg";
-    if (imagePath.startsWith("blob:")) return imagePath;
-    if (imagePath.startsWith("http")) return imagePath;
-    return `/storage/${imagePath}`;
-  };
-
   // Format currency
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -138,6 +143,10 @@ const Profiles = () => {
     setIsEditing(false);
     setEditData({ ...userData });
     setSelectedImage(null);
+    setImagePreview(getUserImage(userData));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   // Handle input change
@@ -160,12 +169,12 @@ const Profiles = () => {
 
       setSelectedImage(file);
       const previewUrl = URL.createObjectURL(file);
-      setEditData((prev) => ({ ...prev, image: previewUrl }));
+      setImagePreview(previewUrl);
     }
   };
 
   // Save updated data
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!currentUser?.id) {
       alert("User not authenticated");
       return;
@@ -183,30 +192,39 @@ const Profiles = () => {
       formData.append("image", selectedImage);
     }
 
-    try {
-      const response = await axios.post(
-        route("users.update", { id: currentUser.id }), 
-        formData, 
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+    router.post(route("users.update", { id: currentUser.id }), formData, {
+      preserveScroll: true,
+      forceFormData: true,
+      onSuccess: (page) => {
+        const updatedUser = page.props.auth?.user ?? {
+          ...userData,
+          ...editData,
+        };
 
-      setUserData(response.data.data || response.data);
-      setIsEditing(false);
-      setSelectedImage(null);
-      alert("Profile updated successfully!");
-      
-      router.reload({ only: ['auth'] });
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      const errorMessage = error.response?.data?.message || "Failed to update profile";
-      alert(errorMessage);
-    } finally {
-      setSaving(false);
-    }
+        setUserData(updatedUser);
+        setEditData(updatedUser);
+        setImagePreview(getUserImage(updatedUser));
+        setIsEditing(false);
+        setSelectedImage(null);
+
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+
+        alert("Profile updated successfully!");
+      },
+      onError: (errors) => {
+        console.error("Error updating profile:", errors);
+        const errorMessage =
+          (errors && Object.values(errors).flat().join(", ")) ||
+          "Failed to update profile";
+        setImagePreview(getUserImage(userData));
+        alert(errorMessage);
+      },
+      onFinish: () => {
+        setSaving(false);
+      },
+    });
   };
 
   // Delete user
@@ -240,7 +258,7 @@ const Profiles = () => {
   // Save notification settings
   const saveNotificationSettings = async () => {
     try {
-      const response = await axios.put(route("users.update", { id: currentUser.id }), {
+      await axios.put(route("users.update", { id: currentUser.id }), {
         notification_settings: notificationSettings
       });
       
@@ -284,11 +302,6 @@ const Profiles = () => {
   // Handle two-factor authentication
   const handleTwoFactorAuth = () => {
     alert("Two-factor authentication feature would be implemented here. This would typically involve:\n\n1. Sending a verification code to your email/phone\n2. Setting up authenticator app\n3. Backup codes generation");
-    
-    // In a real implementation, you would:
-    // 1. Make API call to enable/disable 2FA
-    // 2. Show QR code for authenticator app
-    // 3. Handle verification codes
   };
 
   if (loading) return <p className="text-center py-10">Loading...</p>;
@@ -306,9 +319,13 @@ const Profiles = () => {
                 {/* Profile Image */}
                 <div className="relative flex-shrink-0">
                   <img
-                    src={getImageUrl(editData.image)}
+                    src={imagePreview}
                     alt="Profile"
                     className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover border border-gray-300"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = DEFAULT_AVATAR;
+                    }}
                   />
 
                   {/* Camera Icon */}
@@ -560,9 +577,13 @@ const Profiles = () => {
                           {order.items?.map((item) => (
                             <div key={item.id} className="flex items-center gap-3 md:gap-4">
                               <img
-                                src={item.image}
+                                src={getImageUrl(item.image, DEFAULT_PRODUCT_IMAGE)}
                                 alt={item.product_name}
                                 className="w-12 h-12 md:w-16 md:h-16 object-cover rounded flex-shrink-0"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = DEFAULT_PRODUCT_IMAGE;
+                                }}
                               />
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm md:text-base truncate">{item.product_name}</p>
@@ -623,9 +644,13 @@ const Profiles = () => {
                       {cart.map((item) => (
                         <div key={item.productId} className="flex items-center gap-3 md:gap-4 p-3 md:p-4 border border-gray-200 rounded-lg">
                           <img
-                            src={item.image}
+                            src={getImageUrl(item.image, DEFAULT_PRODUCT_IMAGE)}
                             alt={item.title || item.name}
                             className="w-16 h-16 md:w-20 md:h-20 object-cover rounded flex-shrink-0"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = DEFAULT_PRODUCT_IMAGE;
+                            }}
                           />
                           <div className="flex-1 min-w-0">
                             <h3 className="font-medium text-base md:text-lg truncate">{item.title || item.name}</h3>

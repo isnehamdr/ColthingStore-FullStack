@@ -11,6 +11,7 @@ const Product = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
+  const imagepath= import.meta.env.VITE_IMAGE_PATH
 
   // Fetch products on component mount
   useEffect(() => {
@@ -156,7 +157,7 @@ const Product = () => {
           <div className="h-48 bg-gray-200 flex items-center justify-center">
             {product.images && product.images.length > 0 ? (
               <img 
-                src={`/storage/${product.images[0].image_path}`} 
+                src={`${imagepath}/${product.images[0].image_path}`} 
                 alt={product.product_name}
                 className="h-full w-full object-cover"
                 onError={(e) => {
@@ -226,7 +227,7 @@ const Product = () => {
                     {product.images && product.images.length > 0 ? (
                       <div className="h-10 w-10 flex-shrink-0">
                         <img 
-                          src={`/storage/${product.images[0].image_path}`} 
+                          src={`${imagepath}/${product.images[0].image_path}`} 
                           alt={product.product_name}
                           className="h-10 w-10 rounded-full object-cover"
                           onError={(e) => {

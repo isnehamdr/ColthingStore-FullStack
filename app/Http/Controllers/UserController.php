@@ -9,12 +9,20 @@ use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
+    private function transformUser(User $user): array
+    {
+        $data = $user->toArray();
+        $data['image'] = $user->image ?: $user->avatar;
+
+        return $data;
+    }
+
     /**
      * Display a listing of all users.
      */
     public function index()
     {
-        $users = User::all();
+        $users = User::all()->map(fn (User $user) => $this->transformUser($user));
         return response()->json($users);
     }
 
@@ -46,7 +54,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User created successfully!',
-            'data' => $user,
+            'data' => $this->transformUser($user),
         ], 201);
     }
 
@@ -86,8 +94,16 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+        $user->refresh();
 
-       return redirect()->back();
+        if ($request->expectsJson() || $request->wantsJson()) {
+            return response()->json([
+                'message' => 'User updated successfully!',
+                'data' => $this->transformUser($user),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'User updated successfully!');
     }
 
     /**

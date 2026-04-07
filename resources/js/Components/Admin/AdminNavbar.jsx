@@ -10,7 +10,28 @@ import {
   FiCheckCircle,
 } from 'react-icons/fi';
 
-const IMAGE_PATH = import.meta.env.VITE_IMAGE_PATH || 'http://127.0.0.1:8000/storage';
+const DEFAULT_AVATAR = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f3f4f6'/><circle cx='50' cy='38' r='20' fill='%236b7280'/><ellipse cx='50' cy='82' rx='30' ry='18' fill='%236b7280'/></svg>`;
+
+const getImageUrl = (imagePath) => {
+  if (!imagePath || typeof imagePath !== 'string') return DEFAULT_AVATAR;
+  const value = imagePath.trim();
+  if (!value) return DEFAULT_AVATAR;
+  if (
+    value.startsWith('http://') ||
+    value.startsWith('https://') ||
+    value.startsWith('blob:') ||
+    value.startsWith('data:')
+  ) {
+    return value;
+  }
+  if (value.startsWith('/storage/') || value.startsWith('/images/')) {
+    return value;
+  }
+  if (value.startsWith('storage/') || value.startsWith('images/')) {
+    return `/${value}`;
+  }
+  return `/storage/${value.replace(/^\/+/, '')}`;
+};
 
 const AdminNavbar = ({ toggleSidebar, userDropdownOpen, toggleUserDropdown }) => {
   const { auth } = usePage().props;
@@ -46,18 +67,11 @@ const AdminNavbar = ({ toggleSidebar, userDropdownOpen, toggleUserDropdown }) =>
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
-
-  // ✅ Fixed: controller stores "users/filename.jpg", so just use IMAGE_PATH + image
-  // Result: http://127.0.0.1:8000/storage/users/filename.jpg  ✅
-  // NOT:    /storage/users/filename.jpg (the old broken path)  ❌
-  const userImage = auth?.user?.image
-    ? `${IMAGE_PATH}/${auth.user.image}`
-    : null;
+  const userImage = getImageUrl(auth?.user?.image || auth?.user?.avatar);
 
   return (
     <header className="bg-white border-b border-gray-200">
       <div className="flex items-center justify-between h-16 px-4">
-        {/* Left Section */}
         <div className="flex items-center">
           <button
             onClick={toggleSidebar}
@@ -80,9 +94,7 @@ const AdminNavbar = ({ toggleSidebar, userDropdownOpen, toggleUserDropdown }) =>
           </form>
         </div>
 
-        {/* Right Section */}
         <div className="flex items-center relative">
-          {/* Notifications */}
           <div className="relative">
             <button
               onClick={() => setNotificationOpen(!notificationOpen)}
@@ -126,31 +138,17 @@ const AdminNavbar = ({ toggleSidebar, userDropdownOpen, toggleUserDropdown }) =>
             )}
           </div>
 
-          {/* User Dropdown */}
           <div className="ml-4 relative">
             <button onClick={toggleUserDropdown} className="flex items-center focus:outline-none">
-              {userImage ? (
-                <img
-                  src={userImage}
-                  alt="User Avatar"
-                  className="h-8 w-8 rounded-full object-cover border border-gray-300"
-                  onError={(e) => {
-                    // ✅ If image fails to load, fall back to initials avatar
-                    e.target.onerror = null;
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                />
-              ) : null}
-              {/* Fallback initials avatar — shown if no image or image fails */}
-              <div
-                className="h-8 w-8 rounded-full bg-indigo-100 items-center justify-center"
-                style={{ display: userImage ? 'none' : 'flex' }}
-              >
-                <span className="text-indigo-700 font-medium text-sm">
-                  {auth?.user?.name?.substring(0, 2).toUpperCase() || 'U'}
-                </span>
-              </div>
+              <img
+                src={userImage}
+                alt="User Avatar"
+                className="h-8 w-8 rounded-full object-cover border border-gray-300"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = DEFAULT_AVATAR;
+                }}
+              />
 
               <div className="ml-2 hidden md:block text-left">
                 <p className="text-sm font-medium text-gray-800">{auth?.user?.name}</p>

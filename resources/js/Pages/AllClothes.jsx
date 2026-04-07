@@ -10,6 +10,7 @@ const AllClothes = () => {
 	const [activeFilter, setActiveFilter] = useState('all');
 	const [selectedProduct, setSelectedProduct] = useState(null);
 	const [showDetails, setShowDetails] = useState(false);
+	const imagepath= import.meta.env.VITE_IMAGE_PATH
 
 	// Sidebar state
 	const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -583,7 +584,7 @@ const AllClothes = () => {
 											<div className="p-6 flex flex-col md:flex-row gap-6">
 												<div className="md:w-1/2">
 													<img src={
-															`/storage/${
+															`${imagepath}/${
 																selectedProduct ?. images[0] ?. image_path || ''
 															}`
 														}
@@ -710,7 +711,7 @@ const AllClothes = () => {
 											}>
 												<img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
 													src={
-														`/storage/${
+														`${imagepath}/${
 															product ?. images[0] ?. image_path || ''
 														}`
 													}

@@ -11,15 +11,33 @@ import {
 } from 'react-icons/fi';
 
 // ✅ Inline SVG fallback — no external file needed, never 404s
-const DEFAULT_AVATAR = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23e0e7ff'/><circle cx='50' cy='38' r='20' fill='%236366f1'/><ellipse cx='50' cy='85' rx='30' ry='20' fill='%236366f1'/></svg>`;
 
-const IMAGE_PATH = import.meta.env.VITE_IMAGE_PATH || 'http://127.0.0.1:8000/storage';
+// const IMAGE_PATH = import.meta.env.VITE_IMAGE_PATH || 'http://127.0.0.1:8000/storage';
 
+const DEFAULT_AVATAR = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f3f4f6'/><circle cx='50' cy='38' r='20' fill='%236b7280'/><ellipse cx='50' cy='82' rx='30' ry='18' fill='%236b7280'/></svg>`;
 
-const getImageUrl = (image) => {
-	if (!image) return DEFAULT_AVATAR;
-	return `${IMAGE_PATH}/${image}`;
+const getImageUrl = (imagePath) => {
+	if (!imagePath || typeof imagePath !== 'string') return DEFAULT_AVATAR;
+	const value = imagePath.trim();
+	if (!value) return DEFAULT_AVATAR;
+	if (
+		value.startsWith('http://') ||
+		value.startsWith('https://') ||
+		value.startsWith('blob:') ||
+		value.startsWith('data:')
+	) {
+		return value;
+	}
+	if (value.startsWith('/storage/') || value.startsWith('/images/')) {
+		return value;
+	}
+	if (value.startsWith('storage/') || value.startsWith('images/')) {
+		return `/${value}`;
+	}
+	return `/storage/${value.replace(/^\/+/, '')}`;
 };
+
+const getUserImage = (user) => getImageUrl(user?.image || user?.avatar);
 
 const Setting = () => {
 	const {auth} = usePage().props;
@@ -44,12 +62,12 @@ const Setting = () => {
 
 	const [selectedImage, setSelectedImage] = useState(null);
 	// ✅ Initialize imagePreview correctly from auth.user.image
-	const [imagePreview, setImagePreview] = useState(() => getImageUrl(auth.user?.image));
+	const [imagePreview, setImagePreview] = useState(() => getUserImage(auth.user));
 
 	// ✅ Update preview when auth.user.image changes (e.g. after successful upload + page reload)
 	useEffect(() => {
-		setImagePreview(getImageUrl(auth.user?.image));
-	}, [auth.user?.image]);
+		setImagePreview(getUserImage(auth.user));
+	}, [auth.user]);
 
 	// Sync profile fields when auth.user changes
 	useEffect(() => {
@@ -102,9 +120,7 @@ const Setting = () => {
 					setMessage('Profile image updated successfully!');
 					setSelectedImage(null);
 					// ✅ After upload, use the updated auth.user.image from the new page props
-					if (page.props.auth?.user?.image) {
-						setImagePreview(getImageUrl(page.props.auth.user.image));
-					}
+					setImagePreview(getUserImage(page.props.auth?.user));
 					setTimeout(() => setMessage(''), 3000);
 				},
 				onError: (errors) => {
@@ -114,7 +130,7 @@ const Setting = () => {
 						setMessage('Error updating profile image. Please try again.');
 					}
 					// ✅ Revert preview back to saved image on error
-					setImagePreview(getImageUrl(auth.user?.image));
+					setImagePreview(getUserImage(auth.user));
 				},
 				onFinish: () => setImageLoading(false)
 			});
