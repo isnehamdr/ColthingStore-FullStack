@@ -1,5 +1,6 @@
 import { Star, StarHalf, ChevronRight, Minus, Plus, ShoppingCart, Zap } from 'lucide-react'
 import React, { useState } from 'react'
+import { formatNpr } from '@/utils/storefront'
 
 const ViewDetails = () => {
   const [selectedSize, setSelectedSize] = useState('M')
@@ -69,7 +70,7 @@ const ViewDetails = () => {
             <span className="text-sm text-gray-500">(4.8)</span>
           </div>
           
-          <p className="text-2xl font-bold text-gray-900 mb-6">$28.00</p>
+          <p className="text-2xl font-bold text-gray-900 mb-6">{formatNpr(28)}</p>
           
           <p className="text-gray-600 mb-6">
             I'm a product overview. I'm a great place to include more information about your product. 

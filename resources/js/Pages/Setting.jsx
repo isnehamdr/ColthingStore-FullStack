@@ -9,35 +9,12 @@ import {
 	FiSave,
 	FiUpload
 } from 'react-icons/fi';
+import {DEFAULT_AVATAR, getUserImage} from '@/utils/media';
 
 // ✅ Inline SVG fallback — no external file needed, never 404s
 
 // const IMAGE_PATH = import.meta.env.VITE_IMAGE_PATH || 'http://127.0.0.1:8000/storage';
 
-const DEFAULT_AVATAR = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f3f4f6'/><circle cx='50' cy='38' r='20' fill='%236b7280'/><ellipse cx='50' cy='82' rx='30' ry='18' fill='%236b7280'/></svg>`;
-
-const getImageUrl = (imagePath) => {
-	if (!imagePath || typeof imagePath !== 'string') return DEFAULT_AVATAR;
-	const value = imagePath.trim();
-	if (!value) return DEFAULT_AVATAR;
-	if (
-		value.startsWith('http://') ||
-		value.startsWith('https://') ||
-		value.startsWith('blob:') ||
-		value.startsWith('data:')
-	) {
-		return value;
-	}
-	if (value.startsWith('/storage/') || value.startsWith('/images/')) {
-		return value;
-	}
-	if (value.startsWith('storage/') || value.startsWith('images/')) {
-		return `/${value}`;
-	}
-	return `/storage/${value.replace(/^\/+/, '')}`;
-};
-
-const getUserImage = (user) => getImageUrl(user?.image || user?.avatar);
 
 const Setting = () => {
 	const {auth} = usePage().props;
@@ -396,11 +373,15 @@ const Setting = () => {
 							<h1 className="text-xl font-semibold text-gray-800">Settings</h1>
 							<p className="text-sm text-gray-500 mt-0.5">Manage your account preferences</p>
 						</div>
-						<div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
-							<span className="text-white text-sm font-medium">
-								{auth.user?.name?.charAt(0) || 'U'}
-							</span>
-						</div>
+						<img
+							src={getUserImage(auth.user)}
+							alt={auth.user?.name || 'User'}
+							className="w-10 h-10 rounded-full object-cover border border-gray-200"
+							onError={(e) => {
+								e.target.onerror = null;
+								e.target.src = DEFAULT_AVATAR;
+							}}
+						/>
 					</div>
 				</header>
 

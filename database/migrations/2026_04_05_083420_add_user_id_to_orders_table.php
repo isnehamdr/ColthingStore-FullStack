@@ -8,6 +8,10 @@ class AddUserIdToOrdersTable extends Migration
 {
     public function up()
     {
+        if (!Schema::hasTable('orders') || Schema::hasColumn('orders', 'user_id')) {
+            return;
+        }
+
         Schema::table('orders', function (Blueprint $table) {
             $table->foreignId('user_id')->nullable()->after('id')->constrained()->onDelete('set null');
         });
@@ -15,6 +19,10 @@ class AddUserIdToOrdersTable extends Migration
 
     public function down()
     {
+        if (!Schema::hasTable('orders') || !Schema::hasColumn('orders', 'user_id')) {
+            return;
+        }
+
         Schema::table('orders', function (Blueprint $table) {
             $table->dropForeign(['user_id']);
             $table->dropColumn('user_id');

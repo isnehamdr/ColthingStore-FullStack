@@ -1,36 +1,51 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from '@inertiajs/react';
 import Slider from 'react-slick';
+import axios from 'axios';
 
-// Import Slick CSS
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 
 const Category = () => {
-  const categories = [
-    { src: "/images/c1.avif", label: "SHIRTS", route: '/shirt' },
-    { src: "/images/c2.avif", label: "PANTS", route: '/pant' },
-    { src: "/images/c3.avif", label: "JACKETS", route: '/jacket' },
-    { src: "/images/c4.avif", label: "ALL PRODUCTS", route: '/allproduct' }
-  ];
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Enhanced Slick settings for mobile
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(route('ourproducts.showcase.categories'));
+        setCategories(response.data.categories || []);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   const sliderSettings = {
     dots: true,
-    infinite: true,
+    infinite: categories.length > 1,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
     arrows: false,
-    autoplay: true,
+    autoplay: categories.length > 1,
     autoplaySpeed: 3000,
     pauseOnHover: true,
     adaptiveHeight: false,
-    dotsClass: "slick-dots !bottom-6",
+    dotsClass: 'slick-dots !bottom-6',
     customPaging: () => (
       <div className="w-2 h-2 bg-white/50 rounded-full hover:bg-white transition-all duration-300" />
     ),
   };
+
+  if (loading) {
+    return <div className="text-center py-12">Loading categories...</div>;
+  }
 
   return (
     <>
@@ -40,10 +55,9 @@ const Category = () => {
         </h2>
       </div>
 
-      {/* Desktop: Grid layout (hidden on small screens) */}
-      <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4 px-8 pb-8">
+      <div className="hidden md:grid grid-cols-3 lg:grid grid-cols-4 gap-4 px-8 pb-8">
         {categories.map((item, index) => (
-          <div key={index} className="relative group overflow-hidden ">
+          <div key={`${item.name}-${index}`} className="relative group overflow-hidden ">
             <Link href={item.route} className="block w-full h-full">
               <img
                 className="w-full h-full object-cover object-[59%_22%] group-hover:scale-105 transition-transform duration-300"
@@ -61,7 +75,6 @@ const Category = () => {
         ))}
       </div>
 
-      {/* Mobile: Enhanced Slick Slider (visible only on small screens) */}
       <div className="md:hidden px-4 pb-8">
         <style>{`
           .slick-dots {
@@ -89,7 +102,7 @@ const Category = () => {
         `}</style>
         <Slider {...sliderSettings}>
           {categories.map((item, index) => (
-            <div key={index}>
+            <div key={`${item.name}-${index}`}>
               <div className="relative overflow-hidden ">
                 <Link href={item.route} className="block">
                   <div className="relative h-[60vh] min-h-[450px] max-h-[450px]">
@@ -98,7 +111,6 @@ const Category = () => {
                       src={item.src}
                       alt={item.label}
                     />
-                    {/* Gradient overlay for better button visibility */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                   </div>
                 </Link>

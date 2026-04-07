@@ -21,6 +21,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { usePage } from '@inertiajs/react';
+import { formatNpr } from '@/utils/storefront';
 
 
 
@@ -218,9 +219,9 @@ const Dashboard = () => {
                     <LineChart data={data?.revenueChart || []}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                       <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} />
-                      <YAxis stroke="#9ca3af" fontSize={12} tickFormatter={v => `$${v}`} />
+                      <YAxis stroke="#9ca3af" fontSize={12} tickFormatter={v => formatNpr(v)} />
                       <Tooltip
-                        formatter={v => [`$${Number(v).toFixed(2)}`, 'Revenue']}
+                        formatter={v => [formatNpr(Number(v)), 'Revenue']}
                         contentStyle={{ backgroundColor:'white', border:'1px solid #e5e7eb', borderRadius:'8px' }}
                       />
                       <Line

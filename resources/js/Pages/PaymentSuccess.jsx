@@ -3,10 +3,12 @@ import { CheckCircle, ShoppingBag, Mail, Phone, Download, Home, ShoppingCart, X 
 import Navbar from '@/Components/ClothingStore/Navbar';
 import Footer from '@/Components/ClothingStore/Footer';
 import { Link } from '@inertiajs/react';
+import { formatNpr } from '@/utils/storefront';
 
 const PaymentSuccess = ({ setShowForm, showForm }) => {
     const [orderData, setOrderData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const formatCurrency = (amount) => formatNpr(amount || 0);
 
     useEffect(() => {
         // Retrieve order data from sessionStorage
@@ -258,9 +260,9 @@ const PaymentSuccess = ({ setShowForm, showForm }) => {
                 ${orderData?.orderItems?.map(item => `
                     <tr>
                         <td>${item.product_name}</td>
-                        <td>$${item.price.toFixed(2)}</td>
+                        <td>${formatCurrency(item.price)}</td>
                         <td>${item.quantity}</td>
-                        <td class="text-right">$${(item.quantity * item.price).toFixed(2)}</td>
+                        <td class="text-right">${formatCurrency(item.quantity * item.price)}</td>
                     </tr>
                 `).join('') || ''}
             </tbody>
@@ -271,19 +273,19 @@ const PaymentSuccess = ({ setShowForm, showForm }) => {
         <table class="totals-table">
             <tr>
                 <td>Subtotal:</td>
-                <td class="text-right">$${orderData?.amounts?.subtotal?.toFixed(2) || '0.00'}</td>
+                <td class="text-right">${formatCurrency(orderData?.amounts?.subtotal)}</td>
             </tr>
             <tr>
                 <td>Shipping:</td>
-                <td class="text-right">$${orderData?.amounts?.shipping?.toFixed(2) || '0.00'}</td>
+                <td class="text-right">${formatCurrency(orderData?.amounts?.shipping)}</td>
             </tr>
             <tr>
                 <td>Tax:</td>
-                <td class="text-right">$${orderData?.amounts?.tax?.toFixed(2) || '0.00'}</td>
+                <td class="text-right">${formatCurrency(orderData?.amounts?.tax)}</td>
             </tr>
             <tr>
                 <td><strong>Total:</strong></td>
-                <td class="text-right"><strong>$${orderData?.amounts?.total?.toFixed(2) || '0.00'}</strong></td>
+                <td class="text-right"><strong>${formatCurrency(orderData?.amounts?.total)}</strong></td>
             </tr>
         </table>
     </div>
@@ -377,16 +379,16 @@ ORDER ITEMS:
 ${orderData?.orderItems?.map(item => `
 • ${item.product_name}
   Quantity: ${item.quantity}
-  Price: $${item.price.toFixed(2)}
-  Subtotal: $${(item.quantity * item.price).toFixed(2)}
+  Price: ${formatCurrency(item.price)}
+  Subtotal: ${formatCurrency(item.quantity * item.price)}
 `).join('')}
 
 ORDER SUMMARY:
 --------------
-Subtotal: $${orderData?.amounts?.subtotal?.toFixed(2) || '0.00'}
-Shipping: $${orderData?.amounts?.shipping?.toFixed(2) || '0.00'}
-Tax: $${orderData?.amounts?.tax?.toFixed(2) || '0.00'}
-TOTAL: $${orderData?.amounts?.total?.toFixed(2) || '0.00'}
+Subtotal: ${formatCurrency(orderData?.amounts?.subtotal)}
+Shipping: ${formatCurrency(orderData?.amounts?.shipping)}
+Tax: ${formatCurrency(orderData?.amounts?.tax)}
+TOTAL: ${formatCurrency(orderData?.amounts?.total)}
 
 Thank you for your purchase!
 Your order will be shipped within 3-5 business days.
@@ -499,7 +501,7 @@ No signature is required.
                                                 <p className="text-gray-600">Qty: {item.quantity}</p>
                                             </div>
                                             <p className="font-semibold text-gray-900">
-                                                ${(item.quantity * item.price).toFixed(2)}
+                                                {formatCurrency(item.quantity * item.price)}
                                             </p>
                                         </div>
                                     ))}
@@ -511,19 +513,19 @@ No signature is required.
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-600">Subtotal:</span>
-                                        <span className="text-gray-900">${orderData?.amounts?.subtotal?.toFixed(2) || '0.00'}</span>
+                                        <span className="text-gray-900">{formatCurrency(orderData?.amounts?.subtotal)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-600">Shipping:</span>
-                                        <span className="text-gray-900">${orderData?.amounts?.shipping?.toFixed(2) || '0.00'}</span>
+                                        <span className="text-gray-900">{formatCurrency(orderData?.amounts?.shipping)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-600">Tax:</span>
-                                        <span className="text-gray-900">${orderData?.amounts?.tax?.toFixed(2) || '0.00'}</span>
+                                        <span className="text-gray-900">{formatCurrency(orderData?.amounts?.tax)}</span>
                                     </div>
                                     <div className="flex justify-between text-lg font-bold border-t border-gray-300 pt-2 mt-2">
                                         <span className="text-gray-900">Total:</span>
-                                        <span className="text-green-600">${orderData?.amounts?.total?.toFixed(2) || '0.00'}</span>
+                                        <span className="text-green-600">{formatCurrency(orderData?.amounts?.total)}</span>
                                     </div>
                                 </div>
                             </div>

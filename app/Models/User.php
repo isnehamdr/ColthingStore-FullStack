@@ -26,7 +26,8 @@ class User extends Authenticatable
         'avatar',
         'image',
         'address',
-        'phone_number'
+        'phone_number',
+        'notification_settings'
     ];
 
     /**
@@ -49,6 +50,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'notification_settings' => 'array',
         ];
     }
 }

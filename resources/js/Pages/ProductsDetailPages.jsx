@@ -23,6 +23,7 @@ import { router, usePage } from '@inertiajs/react';
 import Navbar from '@/Components/ClothingStore/Navbar';
 import Footer from '@/Components/ClothingStore/Footer';
 import axios from 'axios';
+import { formatNpr } from '@/utils/storefront';
 
 const ProductsDetailPages = () => {
   const { props } = usePage();
@@ -445,15 +446,15 @@ const ProductsDetailPages = () => {
               {/* Price */}
               <div className="flex items-baseline gap-4">
                 <span className="text-4xl font-light text-neutral-900">
-                  ${(product.discount_price || product.price).toFixed(2)}
+                  {formatNpr(product.discount_price || product.price)}
                 </span>
                 {product.on_sale && product.discount_price && (
                   <>
                     <span className="text-2xl text-neutral-400 line-through">
-                      ${product.original_price.toFixed(2)}
+                      {formatNpr(product.original_price)}
                     </span>
                     <span className="text-sm text-red-600 font-medium bg-red-50 px-2 py-1">
-                      Save ${(product.original_price - product.discount_price).toFixed(2)}
+                      Save {formatNpr(product.original_price - product.discount_price)}
                     </span>
                   </>
                 )}

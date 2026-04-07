@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
   FiSearch,
@@ -9,39 +9,30 @@ import {
   FiMail,
   FiCheckCircle,
 } from 'react-icons/fi';
-
-const DEFAULT_AVATAR = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f3f4f6'/><circle cx='50' cy='38' r='20' fill='%236b7280'/><ellipse cx='50' cy='82' rx='30' ry='18' fill='%236b7280'/></svg>`;
-
-const getImageUrl = (imagePath) => {
-  if (!imagePath || typeof imagePath !== 'string') return DEFAULT_AVATAR;
-  const value = imagePath.trim();
-  if (!value) return DEFAULT_AVATAR;
-  if (
-    value.startsWith('http://') ||
-    value.startsWith('https://') ||
-    value.startsWith('blob:') ||
-    value.startsWith('data:')
-  ) {
-    return value;
-  }
-  if (value.startsWith('/storage/') || value.startsWith('/images/')) {
-    return value;
-  }
-  if (value.startsWith('storage/') || value.startsWith('images/')) {
-    return `/${value}`;
-  }
-  return `/storage/${value.replace(/^\/+/, '')}`;
-};
+import { DEFAULT_AVATAR, getUserImage } from '@/utils/media';
 
 const AdminNavbar = ({ toggleSidebar, userDropdownOpen, toggleUserDropdown }) => {
   const { auth } = usePage().props;
   const [searchQuery, setSearchQuery] = useState('');
-  const [notifications, setNotifications] = useState([
-    { id: 1, message: 'New user registered', read: false },
-    { id: 2, message: 'Order #123 has been completed', read: false },
-    { id: 3, message: 'Server maintenance scheduled', read: true },
-  ]);
+  const [notifications, setNotifications] = useState([]);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+
+  const fetchNotifications = async () => {
+    setLoadingNotifications(true);
+    try {
+      const response = await axios.get(route('notifications.index'));
+      setNotifications(response.data.data || []);
+    } catch (error) {
+      console.error('Notification fetch error:', error);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
   const handleLogout = () => {
     axios.post(route('logout')).then((response) => {
@@ -62,12 +53,26 @@ const AdminNavbar = ({ toggleSidebar, userDropdownOpen, toggleUserDropdown }) =>
     console.log('Searching for:', searchQuery);
   };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map((n) => ({ ...n, read: true })));
+  const markAllAsRead = async () => {
+    try {
+      await axios.post(route('notifications.markAllRead'));
+      setNotifications((current) => current.map((n) => ({ ...n, read: true })));
+    } catch (error) {
+      console.error('Mark notifications read error:', error);
+    }
+  };
+
+  const clearNotifications = async () => {
+    try {
+      await axios.delete(route('notifications.clear'));
+      setNotifications([]);
+    } catch (error) {
+      console.error('Clear notifications error:', error);
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
-  const userImage = getImageUrl(auth?.user?.image || auth?.user?.avatar);
+  const userImage = getUserImage(auth?.user);
 
   return (
     <header className="bg-white border-b border-gray-200">
@@ -97,7 +102,13 @@ const AdminNavbar = ({ toggleSidebar, userDropdownOpen, toggleUserDropdown }) =>
         <div className="flex items-center relative">
           <div className="relative">
             <button
-              onClick={() => setNotificationOpen(!notificationOpen)}
+              onClick={() => {
+                const nextOpen = !notificationOpen;
+                setNotificationOpen(nextOpen);
+                if (nextOpen) {
+                  fetchNotifications();
+                }
+              }}
               className="p-2 text-gray-500 hover:text-gray-600 relative"
             >
               <FiBell className="h-6 w-6" />
@@ -110,12 +121,19 @@ const AdminNavbar = ({ toggleSidebar, userDropdownOpen, toggleUserDropdown }) =>
               <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-40">
                 <div className="flex justify-between items-center px-4 py-2 border-b">
                   <h4 className="text-sm font-semibold text-gray-700">Notifications</h4>
-                  <button onClick={markAllAsRead} className="text-xs text-indigo-600 hover:underline">
-                    Mark all as read
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button onClick={markAllAsRead} className="text-xs text-indigo-600 hover:underline">
+                      Mark all as read
+                    </button>
+                    <button onClick={clearNotifications} className="text-xs text-red-600 hover:underline">
+                      Clear all
+                    </button>
+                  </div>
                 </div>
 
-                {notifications.length === 0 ? (
+                {loadingNotifications ? (
+                  <p className="text-center py-3 text-gray-500 text-sm">Loading notifications...</p>
+                ) : notifications.length === 0 ? (
                   <p className="text-center py-3 text-gray-500 text-sm">No notifications</p>
                 ) : (
                   <ul className="max-h-60 overflow-y-auto">
@@ -129,7 +147,10 @@ const AdminNavbar = ({ toggleSidebar, userDropdownOpen, toggleUserDropdown }) =>
                         ) : (
                           <FiMail className="text-indigo-500" />
                         )}
-                        <span className="text-gray-700">{n.message}</span>
+                        <div className="text-gray-700">
+                          <p className="font-medium">{n.title}</p>
+                          <p>{n.message}</p>
+                        </div>
                       </li>
                     ))}
                   </ul>

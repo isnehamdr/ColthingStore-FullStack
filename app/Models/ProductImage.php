@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class ProductImage extends Model
 {
@@ -14,6 +15,7 @@ class ProductImage extends Model
         'product_id',
         'image_path',
         'is_primary',
+        'alt_text',
     ];
 
     protected $casts = [

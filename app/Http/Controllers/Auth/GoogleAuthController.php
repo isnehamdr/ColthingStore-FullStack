@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -51,6 +52,13 @@ class GoogleAuthController extends Controller
                 ]);
 
                 \Log::info('New customer user created via Google OAuth: ' . $user->email);
+
+                NotificationService::notifyAdmins(
+                    'admin_user_registered',
+                    'Google user registered',
+                    "{$user->name} registered with Google OAuth.",
+                    ['user_id' => $user->id]
+                );
             } else {
                 if (!$user->google_id) {
                     $user->update([
@@ -65,6 +73,27 @@ class GoogleAuthController extends Controller
 
             // Log the user in
             Auth::login($user, true);
+
+            NotificationService::notifyUser(
+                $user->id,
+                'login',
+                'Login successful',
+                'You logged into your account with Google.',
+                ['provider' => 'google']
+            );
+
+            NotificationService::notifyAdmins(
+                'admin_user_login',
+                'User login',
+                "{$user->name} logged in with Google.",
+                ['user_id' => $user->id]
+            );
+
+            NotificationService::logActivity(
+                'login',
+                $request->ip(),
+                "{$user->name} logged in with Google"
+            );
 
             \Log::info('Customer logged in successfully, redirecting to home page');
 

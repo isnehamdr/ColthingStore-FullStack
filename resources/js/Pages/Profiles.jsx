@@ -20,32 +20,8 @@ import Navbar from "@/Components/ClothingStore/Navbar";
 import Footer from "@/Components/ClothingStore/Footer";
 import { usePage, router } from "@inertiajs/react";
 import { useCart } from '../contexts/CartContext';
-
-const DEFAULT_AVATAR = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f3f4f6'/><circle cx='50' cy='38' r='20' fill='%236b7280'/><ellipse cx='50' cy='82' rx='30' ry='18' fill='%236b7280'/></svg>`;
-const DEFAULT_PRODUCT_IMAGE = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' fill='%23f3f4f6'/><rect x='24' y='22' width='72' height='76' rx='8' fill='%23d1d5db'/><path d='M36 84l18-20 14 14 16-22 12 28H36z' fill='%239ca3af'/></svg>`;
-
-const getImageUrl = (imagePath, fallback = DEFAULT_AVATAR) => {
-  if (!imagePath || typeof imagePath !== "string") return fallback;
-  const value = imagePath.trim();
-  if (!value) return fallback;
-  if (
-    value.startsWith("http://") ||
-    value.startsWith("https://") ||
-    value.startsWith("blob:") ||
-    value.startsWith("data:")
-  ) {
-    return value;
-  }
-  if (value.startsWith("/storage/") || value.startsWith("/images/")) {
-    return value;
-  }
-  if (value.startsWith("storage/") || value.startsWith("images/")) {
-    return `/${value}`;
-  }
-  return `/storage/${value.replace(/^\/+/, "")}`;
-};
-
-const getUserImage = (user) => getImageUrl(user?.image || user?.avatar, DEFAULT_AVATAR);
+import { DEFAULT_AVATAR, DEFAULT_PRODUCT_IMAGE, getImageUrl, getUserImage } from '@/utils/media';
+import { formatNpr } from '@/utils/storefront';
 
 const Profiles = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -84,6 +60,12 @@ const Profiles = () => {
     setUserData(currentUser || null);
     setEditData(currentUser || {});
     setImagePreview(getUserImage(currentUser));
+    const savedSettings = currentUser?.notification_settings || {};
+    setNotificationSettings({
+      emailNotifications: savedSettings.emailNotifications ?? true,
+      orderUpdates: savedSettings.orderUpdates ?? true,
+      promotionalEmails: savedSettings.promotionalEmails ?? false,
+    });
     setLoading(false);
   }, [currentUser]);
 
@@ -125,12 +107,7 @@ const Profiles = () => {
   };
 
   // Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount || 0);
-  };
+  const formatCurrency = (amount) => formatNpr(amount || 0);
 
   // Start editing
   const handleEdit = () => {

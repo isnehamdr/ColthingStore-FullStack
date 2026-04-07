@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductForm from '@/Components/Product/ProductForm';
 import AdminPageWrapper from '@/Components/Admin/AdminPageWrapper';
+import { DEFAULT_PRODUCT_IMAGE, getImageUrl } from '@/utils/media';
+import { formatNpr } from '@/utils/storefront';
 
 const Product = () => {
   // State management
@@ -11,7 +13,6 @@ const Product = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
-  const imagepath= import.meta.env.VITE_IMAGE_PATH
 
   // Fetch products on component mount
   useEffect(() => {
@@ -157,12 +158,12 @@ const Product = () => {
           <div className="h-48 bg-gray-200 flex items-center justify-center">
             {product.images && product.images.length > 0 ? (
               <img 
-                src={`${imagepath}/${product.images[0].image_path}`} 
+                src={getImageUrl(product.images[0].image_path, DEFAULT_PRODUCT_IMAGE)} 
                 alt={product.product_name}
                 className="h-full w-full object-cover"
                 onError={(e) => {
-                  e.target.src = '/placeholder-image.jpg';
-                  e.target.className = 'h-full w-full object-contain bg-gray-100';
+                  e.target.src = DEFAULT_PRODUCT_IMAGE;
+                  e.target.className = 'h-full w-full object-cover bg-gray-100';
                 }}
               />
             ) : (
@@ -175,10 +176,17 @@ const Product = () => {
             <h3 className="font-semibold text-lg text-gray-800 mb-1">{product.product_name}</h3>
             <p className="text-gray-600 text-sm mb-2">{product.category}</p>
             <div className="flex justify-between items-center mb-3">
-              <span className="text-lg font-bold text-blue-600">${product.price}</span>
-              <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                In Stock
-              </span>
+              <span className="text-lg font-bold text-blue-600">{formatNpr(product.price)}</span>
+              <div className="flex gap-2">
+                {product.is_sale && (
+                  <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
+                    Sale
+                  </span>
+                )}
+                <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                  In Stock
+                </span>
+              </div>
             </div>
             <div className="flex justify-between text-sm text-gray-500 mb-3">
               <span>Stock: {product.stock}</span>
@@ -227,12 +235,12 @@ const Product = () => {
                     {product.images && product.images.length > 0 ? (
                       <div className="h-10 w-10 flex-shrink-0">
                         <img 
-                          src={`${imagepath}/${product.images[0].image_path}`} 
+                          src={getImageUrl(product.images[0].image_path, DEFAULT_PRODUCT_IMAGE)} 
                           alt={product.product_name}
                           className="h-10 w-10 rounded-full object-cover"
                           onError={(e) => {
-                            e.target.src = '/placeholder-image.jpg';
-                            e.target.className = 'h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center';
+                            e.target.src = DEFAULT_PRODUCT_IMAGE;
+                            e.target.className = 'h-10 w-10 rounded-full object-cover bg-gray-200';
                           }}
                         />
                       </div>
@@ -250,12 +258,19 @@ const Product = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.category}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">${product.price}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{formatNpr(product.price)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.stock}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                    In Stock
-                  </span>
+                  <div className="flex gap-2">
+                    {product.is_sale && (
+                      <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
+                        Sale
+                      </span>
+                    )}
+                    <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                      In Stock
+                    </span>
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button

@@ -12,10 +12,11 @@ const Categorypage = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('/categories');
-        setCategories(response.data.categories);
+        const response = await axios.get(route('ourproducts.showcase.categories'));
+        setCategories(response.data.categories || []);
       } catch (error) {
         console.error('Error fetching categories:', error);
+        setCategories([]);
       } finally {
         setLoading(false);
       }

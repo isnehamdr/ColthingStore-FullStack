@@ -1,5 +1,6 @@
 import GuestLayout from '@/Layouts/GuestLayout';
 import React from 'react';
+import { formatNpr } from '@/utils/storefront';
 
 const ThankYouPage = () => {
   // Sample order data - replace with actual data from your state/API
@@ -97,9 +98,9 @@ const ThankYouPage = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-semibold text-gray-900">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        {formatNpr(item.price * item.quantity)}
                       </p>
-                      <p className="text-xs text-gray-500">${item.price} each</p>
+                      <p className="text-xs text-gray-500">{formatNpr(item.price)} each</p>
                     </div>
                   </div>
                 ))}
@@ -146,20 +147,20 @@ const ThankYouPage = () => {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="text-gray-900">${orderData.subtotal.toFixed(2)}</span>
+                    <span className="text-gray-900">{formatNpr(orderData.subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Shipping</span>
-                    <span className="text-gray-900">${orderData.shipping.toFixed(2)}</span>
+                    <span className="text-gray-900">{formatNpr(orderData.shipping)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Tax</span>
-                    <span className="text-gray-900">${orderData.tax.toFixed(2)}</span>
+                    <span className="text-gray-900">{formatNpr(orderData.tax)}</span>
                   </div>
                   <div className="border-t border-gray-200 pt-3">
                     <div className="flex justify-between text-lg font-semibold">
                       <span className="text-gray-900">Total</span>
-                      <span className="text-gray-900">${orderData.total.toFixed(2)}</span>
+                      <span className="text-gray-900">{formatNpr(orderData.total)}</span>
                     </div>
                   </div>
                 </div>

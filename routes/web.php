@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
@@ -89,6 +90,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/guest/orders', [OrderController::class, 'store']); // For guest checkout
 
     Route::get('/ouractivities', [ActivityLogController::class, 'index'])->name('ouractivities.index');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+    Route::delete('/notifications/clear', [NotificationController::class, 'clearAll'])->name('notifications.clear');
+    Route::post('/notifications/cart-event', [NotificationController::class, 'storeCartEvent'])->name('notifications.cartEvent');
 
     Route::get('/profiles', function () {
         return Inertia::render('Profiles');
@@ -96,7 +101,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/user', function () {
         return Inertia::render('UserManagement');
-    });
+    })->middleware('role:admin');
 
     Route::get('/payment/success', function () {
         return Inertia::render('PaymentSuccess');
@@ -157,6 +162,8 @@ Route::get('/thankyou', function () {
 
 // Product routes for customers
 Route::get('/ourproducts', [ProductController::class, 'index'])->name('ourproducts.index');
+Route::get('/ourproducts/showcase/sale', [ProductController::class, 'saleShowcase'])->name('ourproducts.showcase.sale');
+Route::get('/ourproducts/showcase/categories', [ProductController::class, 'categoryShowcase'])->name('ourproducts.showcase.categories');
 
 // Order for customers
 Route::get('/ourorders', [OrderController::class, 'index'])->name('ourorders.index');

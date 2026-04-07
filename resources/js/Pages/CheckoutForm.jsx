@@ -6,6 +6,7 @@ import { ShoppingCartIcon } from 'lucide-react';
 import { XCircle } from 'lucide-react'; 
 import emailjs from 'emailjs-com';
 import axios from 'axios';
+import { formatNpr } from '@/utils/storefront';
 
 // Mock Order service
 const SERVICE_ID = 'service_h3lobuf';
@@ -752,7 +753,7 @@ const CheckoutForm = () => {
             Processing...
           </div>
         ) : (
-          `Continue to Payment - $${total.toFixed(2)}`
+          `Continue to Payment - ${formatNpr(total)}`
         )}
       </button>
     </form>
@@ -789,7 +790,7 @@ const CheckoutForm = () => {
             Total Amount
           </p>
           <p className="text-3xl font-bold text-green-600">
-            $ {total.toFixed(2)}
+            {formatNpr(total)}
           </p>
         </div>
       </div>
@@ -800,7 +801,7 @@ const CheckoutForm = () => {
             Subtotal
           </span>
           <span className="font-semibold text-gray-900">
-            $ {subtotal.toFixed(2)}
+            {formatNpr(subtotal)}
           </span>
         </div>
         <div className="flex justify-between">
@@ -808,7 +809,7 @@ const CheckoutForm = () => {
             Shipping
           </span>
           <span className="font-semibold text-gray-900">
-            $ {shipping.toFixed(2)}
+            {formatNpr(shipping)}
           </span>
         </div>
         <div className="flex justify-between">
@@ -816,7 +817,7 @@ const CheckoutForm = () => {
             Tax (8% VAT)
           </span>
           <span className="font-semibold text-gray-900">
-            $ {tax.toFixed(2)}
+            {formatNpr(tax)}
           </span>
         </div>
       </div>
@@ -971,7 +972,7 @@ const CheckoutForm = () => {
                             <div>
                               <div className="flex justify-between text-base font-medium text-gray-900">
                                 <h3 className="text-sm">{item.title || item.name}</h3>
-                                <p className="ml-4 text-sm">${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</p>
+                                <p className="ml-4 text-sm">{formatNpr((item.price || 0) * (item.quantity || 1))}</p>
                               </div>
                               {item.sellerName && (
                                 <p className="text-xs text-gray-500 mt-1">Sold by: {item.sellerName}</p>
@@ -979,7 +980,7 @@ const CheckoutForm = () => {
                             </div>
                             <div className="flex-1 flex items-end justify-between text-sm">
                               <p className="text-gray-500">Qty {item.quantity || 1}</p>
-                              <p className="text-gray-600">${(item.price || 0).toFixed(2)} each</p>
+                              <p className="text-gray-600">{formatNpr(item.price || 0)} each</p>
                             </div>
                           </div>
                         </li>
@@ -991,19 +992,19 @@ const CheckoutForm = () => {
                   <div className="border-t border-gray-200 pt-6 space-y-3">
                     <div className="flex justify-between text-base font-medium text-gray-900">
                       <p>Subtotal</p>
-                      <p>${subtotal.toFixed(2)}</p>
+                      <p>{formatNpr(subtotal)}</p>
                     </div>
                     <div className="flex justify-between text-sm text-gray-600">
                       <p>Shipping</p>
-                      <p>${shipping.toFixed(2)}</p>
+                      <p>{formatNpr(shipping)}</p>
                     </div>
                     <div className="flex justify-between text-sm text-gray-600">
                       <p>Tax</p>
-                      <p>${tax.toFixed(2)}</p>
+                      <p>{formatNpr(tax)}</p>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-gray-900 border-t border-gray-200 pt-4">
                       <p>Total</p>
-                      <p>${total.toFixed(2)}</p>
+                      <p>{formatNpr(total)}</p>
                     </div>
                   </div>
 

@@ -17,6 +17,7 @@ import {
   LineChart,
   Line,
 } from "recharts";
+import { formatNpr } from '@/utils/storefront';
 
 const MainContent = () => {
   const [timeRange, setTimeRange] = useState("monthly");
@@ -128,7 +129,7 @@ const MainContent = () => {
           {[
             {
               title: "Total Sales",
-              value: "$24,500",
+              value: formatNpr(24500),
               change: "+12.5%",
               color: "blue",
               icon: FiShoppingCart,
@@ -245,7 +246,7 @@ const MainContent = () => {
                 icon: FiShoppingCart,
                 color: "blue",
                 title: "New order #3245 placed",
-                desc: "Customer: John Doe • Total: $245.99",
+                desc: `Customer: John Doe • Total: ${formatNpr(245.99)}`,
                 time: "2h ago",
               },
               {

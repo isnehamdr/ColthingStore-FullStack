@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Mail\OrderConfirmation;
 use App\Models\ActivityLog;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
@@ -108,18 +109,32 @@ class OrderController extends Controller
             // Send confirmation email
             Mail::to($order->email)->send(new OrderConfirmation($order));
 
-            // Log activity: Order Created
-            ActivityLog::create([
-                'name' => 'Order Created',
-                'ip_address' => $request->ip(),
-                'title' => "Order #{$order->order_number} created by {$order->email}",
-                'description' => "Payment method: {$order->payment_method}, Total: {$order->total}"
-            ]);
+            NotificationService::notifyUser(
+                $order->user_id,
+                'order_created',
+                'Order placed successfully',
+                "Your order {$order->order_number} has been placed.",
+                ['order_id' => $order->id, 'status' => $order->status]
+            );
+
+            NotificationService::notifyAdmins(
+                'admin_order_created',
+                'New order received',
+                "{$order->first_name} {$order->last_name} placed order {$order->order_number}.",
+                ['order_id' => $order->id, 'user_id' => $order->user_id]
+            );
+
+            NotificationService::logActivity(
+                'order_created',
+                $request->ip(),
+                "Order {$order->order_number} created by {$order->email}"
+            );
 
             return response()->json([
                 'success' => true,
                 'message' => 'Order created successfully',
                 'data' => [
+                    'id' => $order->id,
                     'order_number' => $orderNumber,
                     'email' => $order->email,
                     'order_items' => $order->items,
@@ -163,12 +178,26 @@ class OrderController extends Controller
             'payment_reference' => $validated['payment_reference'] ?? null,
         ]);
 
-        // Log activity: Payment Status Updated
-        ActivityLog::create([
-            'name' => 'Payment Status Updated',
-            'ip_address' => $request->ip(),
-            'title' => "Order #{$order->order_number} payment status updated to {$order->status}",
-        ]);
+        NotificationService::notifyUser(
+            $order->user_id,
+            'payment_status_updated',
+            'Payment status updated',
+            "Payment for order {$order->order_number} is now {$order->status}.",
+            ['order_id' => $order->id, 'status' => $order->status]
+        );
+
+        NotificationService::notifyAdmins(
+            'admin_payment_status_updated',
+            'Payment status updated',
+            "Order {$order->order_number} payment status changed to {$order->status}.",
+            ['order_id' => $order->id, 'status' => $order->status]
+        );
+
+        NotificationService::logActivity(
+            'payment_status_updated',
+            $request->ip(),
+            "Order {$order->order_number} payment status updated to {$order->status}"
+        );
 
         return response()->json([
             'success' => true,
@@ -179,31 +208,38 @@ class OrderController extends Controller
 
     public function index(): JsonResponse
     {
-        $user = Auth::user();
-        
-        // Check if user is admin
-        if ($user && $user->role === 'admin') {
-            // Admin sees all orders
-            $orders = Order::with('items')->latest()->get();
-        } else {
-            // Customers see only their own orders
-            // If user is logged in, show orders by email or user_id
-            if ($user) {
-                $orders = Order::with('items')
-                    ->where('email', $user->email)
-                    ->orWhere('user_id', $user->id)
-                    ->latest()
-                    ->get();
+        try {
+            $user = Auth::user();
+
+            if ($user && $user->role === 'admin') {
+                $orders = Order::with('items')->latest()->get();
             } else {
-                // For guests, return empty array or you can handle differently
-                $orders = collect([]);
+                if ($user) {
+                    $orders = Order::with('items')
+                        ->where(function ($query) use ($user) {
+                            $query->where('email', $user->email)
+                                ->orWhere('user_id', $user->id);
+                        })
+                        ->latest()
+                        ->get();
+                } else {
+                    $orders = collect([]);
+                }
             }
+
+            return response()->json([
+                'success' => true,
+                'data' => $orders
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Order index failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch orders.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
         }
-        
-        return response()->json([
-            'success' => true,
-            'data' => $orders
-        ]);
     }
 
     public function show($id): JsonResponse
@@ -281,13 +317,30 @@ class OrderController extends Controller
         }
 
         $order->update($validated);
+        $order->refresh();
 
-        // Log activity: Order Updated
-        ActivityLog::create([
-            'name' => 'Order Updated',
-            'ip_address' => $request->ip(),
-            'title' => "Order #{$order->order_number} updated (Status: {$order->status})",
-        ]);
+        $actorName = $user?->name ?? 'System';
+
+        NotificationService::notifyUser(
+            $order->user_id,
+            'order_updated',
+            'Order status updated',
+            "Your order {$order->order_number} is now {$order->status}.",
+            ['order_id' => $order->id, 'status' => $order->status]
+        );
+
+        NotificationService::notifyAdmins(
+            'admin_order_updated',
+            'Order updated',
+            "{$actorName} changed order {$order->order_number} to {$order->status}.",
+            ['order_id' => $order->id, 'status' => $order->status, 'actor_id' => $user?->id]
+        );
+
+        NotificationService::logActivity(
+            'order_updated',
+            $request->ip(),
+            "{$actorName} updated order {$order->order_number} to {$order->status}"
+        );
 
         return response()->json([
             'success' => true,
@@ -319,12 +372,18 @@ class OrderController extends Controller
         $orderNumber = $order->order_number;
         $order->delete();
 
-        // Log activity: Order Deleted
-        ActivityLog::create([
-            'name' => 'Order Deleted',
-            'ip_address' => request()->ip(),
-            'title' => "Order #{$orderNumber} was deleted",
-        ]);
+        NotificationService::notifyAdmins(
+            'admin_order_deleted',
+            'Order deleted',
+            "{$user->name} deleted order {$orderNumber}.",
+            ['order_number' => $orderNumber, 'actor_id' => $user->id]
+        );
+
+        NotificationService::logActivity(
+            'order_deleted',
+            request()->ip(),
+            "{$user->name} deleted order {$orderNumber}"
+        );
 
         return response()->json([
             'success' => true,

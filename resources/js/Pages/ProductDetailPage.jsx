@@ -21,6 +21,9 @@ import toast, { Toaster } from 'react-hot-toast';
 import { useCart } from '../contexts/CartContext';
 import Navbar from '@/Components/ClothingStore/Navbar';
 import Footer from '@/Components/ClothingStore/Footer';
+import axios from 'axios';
+import { DEFAULT_PRODUCT_IMAGE, getImageUrl } from '@/utils/media';
+import { formatNpr, normalizeStorefrontProduct } from '@/utils/storefront';
 
 const ProductDetailPage = ({ slug: propSlug }) => {
   // Get slug from props (Inertia) or from URL as fallback
@@ -50,36 +53,23 @@ const ProductDetailPage = ({ slug: propSlug }) => {
   const fetchProductDetails = async () => {
     try {
       setLoading(true);
-      
-      // Try to fetch from API first
-      try {
-        const response = await fetch(`/api/products/${slug}`);
-        
-        if (response.ok) {
-          const result = await response.json();
-          
-          if (result.product) {
-            setProduct(result.product);
-          } else if (result.data) {
-            setProduct(result.data);
-          } else {
-            // Fallback to local data
-            fetchFromLocalData();
-          }
-        } else {
-          // Fallback to local data if API fails
-          fetchFromLocalData();
-        }
-      } catch (apiError) {
-        // Fallback to local data if API call fails
-        console.log('API failed, using local data');
+
+      const response = await axios.get(route('ourproducts.index'));
+      const items = response.data?.data || [];
+      const foundProduct = items.find((item) => item.slug === slug);
+
+      if (foundProduct) {
+        const normalized = normalizeBackendProduct(foundProduct);
+        setProduct(normalized);
+        setSelectedSize(normalized.sizes?.[0] || '');
+        setSelectedColor(normalized.colors?.[0] || '');
+        setError(null);
+      } else {
         fetchFromLocalData();
       }
-      
     } catch (err) {
-      setError('Product not found or failed to load');
       console.error('Error fetching product:', err);
-      setLoading(false);
+      fetchFromLocalData();
     }
   };
 
@@ -326,9 +316,10 @@ const ProductDetailPage = ({ slug: propSlug }) => {
       const foundProduct = localProducts.products.find(p => p.slug === slug);
       
       if (foundProduct) {
-        setProduct(foundProduct);
-        setSelectedSize(foundProduct.sizes?.[0] || '');
-        setSelectedColor(foundProduct.colors?.[0] || '');
+        const normalized = normalizeBackendProduct(foundProduct);
+        setProduct(normalized);
+        setSelectedSize(normalized.sizes?.[0] || '');
+        setSelectedColor(normalized.colors?.[0] || '');
         setError(null);
       } else {
         setError('Product not found');
@@ -478,7 +469,41 @@ const ProductDetailPage = ({ slug: propSlug }) => {
 
   const productImages = product.images && product.images.length > 0 
     ? product.images 
-    : [{ image_path: '/images/placeholder-jacket.jpg' }];
+    : [{ image_path: DEFAULT_PRODUCT_IMAGE }];
+
+  function normalizeBackendProduct(productData) {
+    const normalized = normalizeStorefrontProduct(productData);
+    const images = productData?.images?.length
+      ? productData.images.map((image) => ({
+          ...image,
+          image_path: getImageUrl(image.image_path, DEFAULT_PRODUCT_IMAGE),
+        }))
+      : [{ image_path: normalized.image }];
+
+    return {
+      ...normalized,
+      in_stock: Number(productData?.stock || 0) > 0,
+      is_new: Boolean(productData?.is_new),
+      images,
+      sizes:
+        normalized.sizes && normalized.sizes.length > 0 ? normalized.sizes : ['M'],
+      colors:
+        normalized.colors && normalized.colors.length > 0 ? normalized.colors : ['Default'],
+      features: productData?.features || [
+        'Premium quality fabric',
+        'Comfortable fit',
+        'Durable material',
+      ],
+      care_instructions: productData?.care_instructions || [
+        'Machine wash cold',
+        'Tumble dry low',
+        'Iron on low heat',
+      ],
+      seller_id: productData?.seller_id || 1,
+      seller_name: productData?.seller_name || 'Roon Apparel',
+      sku: productData?.sku || productData?.id,
+    };
+  }
 
   return (<>
   <Navbar/>
@@ -616,15 +641,15 @@ const ProductDetailPage = ({ slug: propSlug }) => {
             {/* Price */}
             <div className="flex items-baseline gap-4">
               <span className="text-4xl font-light text-neutral-900">
-                ${product.price.toFixed(2)}
+                {formatNpr(product.price)}
               </span>
               {product.on_sale && (
                 <>
                   <span className="text-2xl text-neutral-400 line-through">
-                    ${product.original_price.toFixed(2)}
+                    {formatNpr(product.original_price)}
                   </span>
                   <span className="text-sm text-red-600 font-medium bg-red-50 px-2 py-1">
-                    Save ${(product.original_price - product.price).toFixed(2)}
+                    Save {formatNpr(product.original_price - product.price)}
                   </span>
                 </>
               )}

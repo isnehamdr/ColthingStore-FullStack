@@ -14,9 +14,9 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   // Sample data
   const categories = [
-    { name: 'All products', path: '/home' },
+ 
     { name: 'Jackets', path: '/jacket' },
-    { name: 'Jeans', path: '/jacket' },
+
     { name: 'Shirts', path: '/shirt' },
     { name: 'Pants', path: '/pant' },
     { name: 'All Clothes', path: '/allproduct' }

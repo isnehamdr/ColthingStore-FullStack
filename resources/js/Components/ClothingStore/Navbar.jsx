@@ -16,30 +16,8 @@ import {
 } from 'lucide-react';
 import {useCart} from '../../contexts/CartContext';
 import {Link, usePage, router} from '@inertiajs/react';
-
-const DEFAULT_AVATAR = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f3f4f6'/><circle cx='50' cy='38' r='20' fill='%236b7280'/><ellipse cx='50' cy='82' rx='30' ry='18' fill='%236b7280'/></svg>`;
-
-const getUserImage = (user) => {
-	const imagePath = user?.image || user?.avatar;
-	if (!imagePath || typeof imagePath !== 'string') return DEFAULT_AVATAR;
-	const value = imagePath.trim();
-	if (!value) return DEFAULT_AVATAR;
-	if (
-		value.startsWith('http://') ||
-		value.startsWith('https://') ||
-		value.startsWith('blob:') ||
-		value.startsWith('data:')
-	) {
-		return value;
-	}
-	if (value.startsWith('/storage/') || value.startsWith('/images/')) {
-		return value;
-	}
-	if (value.startsWith('storage/') || value.startsWith('images/')) {
-		return `/${value}`;
-	}
-	return `/storage/${value.replace(/^\/+/, '')}`;
-};
+import {DEFAULT_AVATAR, getUserImage} from '@/utils/media';
+import {formatNpr} from '@/utils/storefront';
 
 const Navbar = ({onMenuClick}) => {
 	const [isHidden, setIsHidden] = useState(false);
@@ -856,7 +834,7 @@ const CartContent = ({
 													{item.title}
 												</h3>
 												<p className="text-xs sm:text-sm text-gray-600">
-													${item.price?.toFixed(2)}
+													{formatNpr(item.price)}
 												</p>
 
 												{/* Quantity Controls */}
@@ -885,7 +863,7 @@ const CartContent = ({
 											{/* Item Total & Remove Button */}
 											<div className="text-right flex-shrink-0">
 												<p className="text-xs sm:text-sm font-semibold text-gray-800">
-													${(item.price * item.quantity).toFixed(2)}
+													{formatNpr(item.price * item.quantity)}
 												</p>
 												<button 
 													onClick={() => onRemoveItem(item.productId)}
@@ -918,7 +896,7 @@ const CartContent = ({
 						<div className="space-y-1 sm:space-y-2">
 							<div className="flex justify-between items-center text-sm sm:text-base">
 								<span className="text-gray-600">Subtotal:</span>
-								<span className="font-medium">${subtotal.toFixed(2)}</span>
+								<span className="font-medium">{formatNpr(subtotal)}</span>
 							</div>
 							<div className="flex justify-between items-center text-xs sm:text-sm">
 								<span className="text-gray-600">Shipping:</span>
@@ -926,7 +904,7 @@ const CartContent = ({
 							</div>
 							<div className="flex justify-between items-center pt-2 border-t border-gray-200 text-base sm:text-lg">
 								<span className="font-semibold text-gray-800">Total:</span>
-								<span className="font-bold text-gray-900">${grandTotal.toFixed(2)}</span>
+								<span className="font-bold text-gray-900">{formatNpr(grandTotal)}</span>
 							</div>
 						</div>
 

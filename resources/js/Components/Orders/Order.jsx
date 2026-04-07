@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { usePage } from '@inertiajs/react';
+import { DEFAULT_PRODUCT_IMAGE, getImageUrl } from '@/utils/media';
+import { formatNpr } from '@/utils/storefront';
 
 const Order = () => {
   const { auth } = usePage().props;
@@ -11,7 +13,6 @@ const Order = () => {
   const [showModal, setShowModal] = useState(false);
   const [updatingOrder, setUpdatingOrder] = useState(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
-  const imagepath= import.meta.env.VITE_IMAGE_PATH
   
   const isAdmin = auth?.user?.role === 'admin';
 
@@ -164,12 +165,7 @@ const Order = () => {
   };
 
   // Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
+  const formatCurrency = (amount) => formatNpr(amount || 0);
 
   // Format date
   const formatDate = (dateString) => {
@@ -418,11 +414,11 @@ const Order = () => {
                     <div key={index} className="flex items-center p-4 border-b border-gray-200 last:border-b-0">
                       {item.image && (
                         <img
-                          src={`${imagepath}/${item.image}`}
+                          src={getImageUrl(item.image, DEFAULT_PRODUCT_IMAGE)}
                           alt={item.product_name}
                           className="w-16 h-16 object-cover rounded-md mr-4"
                           onError={(e) => {
-                            e.target.style.display = 'none';
+                            e.target.src = DEFAULT_PRODUCT_IMAGE;
                           }}
                         />
                       )}

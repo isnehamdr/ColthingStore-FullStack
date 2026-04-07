@@ -1,5 +1,6 @@
 // contexts/CartContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const CartContext = createContext();
@@ -10,6 +11,17 @@ export const useCart = () => {
     throw new Error('useCart must be used within a CartProvider');
   }
   return context;
+};
+
+const getCurrentAuthUser = () => {
+  try {
+    const appElement = document.getElementById('app');
+    const pageData = appElement?.dataset?.page ? JSON.parse(appElement.dataset.page) : null;
+    return pageData?.props?.auth?.user || null;
+  } catch (error) {
+    console.error('Error reading current auth user:', error);
+    return null;
+  }
 };
 
 export const CartProvider = ({ children }) => {
@@ -72,6 +84,19 @@ export const CartProvider = ({ children }) => {
         }];
       }
     });
+
+    const currentUser = getCurrentAuthUser();
+
+    if (currentUser) {
+      axios.post(route('notifications.cartEvent'), {
+        action: 'added',
+        product_id: product.productId,
+        product_name: product.title || product.name || 'Product',
+        quantity: 1,
+      }).catch((error) => {
+        console.error('Cart notification error:', error);
+      });
+    }
 
   };
 

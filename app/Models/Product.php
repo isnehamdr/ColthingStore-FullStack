@@ -18,9 +18,14 @@ class Product extends Model
         'stock',
         'description',
         'discount_price',
+        'is_sale',
         'size', // Changed from 'sizes'
         'color', // Changed from 'colors'
         'slug',
+    ];
+
+    protected $casts = [
+        'is_sale' => 'boolean',
     ];
 
 protected static function boot()

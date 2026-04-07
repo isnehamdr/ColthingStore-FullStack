@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { Link } from '@inertiajs/react';
+import { formatNpr } from '@/utils/storefront';
 
 const imagepath = import.meta.env.VITE_IMAGE_PATH;
 
@@ -496,12 +497,12 @@ const ProductCard = ({ product, onSelect, onAddToCart, renderRating }) => {
         {/* Price */}
         <div className="flex items-center gap-2">
           <span className="text-lg font-semibold text-neutral-900">
-            ${product.price.toFixed(2)}
+            {formatNpr(product.price)}
           </span>
           {product.on_sale && (
             <>
               <span className="text-sm text-neutral-400 line-through">
-                ${product.original_price.toFixed(2)}
+                {formatNpr(product.original_price)}
               </span>
               <span className="text-xs text-red-600 font-medium">
                 {Math.round((1 - product.price / product.original_price) * 100)}% OFF
@@ -587,12 +588,12 @@ const ProductDetailCard = ({ product, onSelect, onAddToCart, renderRating }) => 
           {/* Price */}
           <div className="flex items-baseline gap-3">
             <span className="text-2xl font-light text-neutral-900">
-              ${product.price.toFixed(2)}
+              {formatNpr(product.price)}
             </span>
             {product.on_sale && (
               <>
                 <span className="text-lg text-neutral-400 line-through">
-                  ${product.original_price.toFixed(2)}
+                  {formatNpr(product.original_price)}
                 </span>
                 <span className="text-sm text-red-600 font-medium">
                   {Math.round((1 - product.price / product.original_price) * 100)}% OFF
@@ -858,8 +859,8 @@ const Sidebar = ({
                   className="w-full accent-neutral-900"
                 />
                 <div className="flex justify-between text-sm text-neutral-600">
-                  <span>${priceRange[0]}</span>
-                  <span>${priceRange[1]}</span>
+                  <span>{formatNpr(priceRange[0])}</span>
+                  <span>{formatNpr(priceRange[1])}</span>
                 </div>
               </div>
             )}

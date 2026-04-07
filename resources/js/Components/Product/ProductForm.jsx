@@ -5,6 +5,8 @@ const ProductForm = ({ onSubmit, initialData, onCancel }) => {
     product_name: '',
     category: '',
     price: '',
+    discount_price: '',
+    is_sale: false,
     stock: '',
     images: [], // New images to upload
     imagePreviews: [], // Preview URLs for new images
@@ -47,6 +49,8 @@ const ProductForm = ({ onSubmit, initialData, onCancel }) => {
         product_name: initialData.product_name || '',
         category: initialData.category || '',
         price: initialData.price || '',
+        discount_price: initialData.discount_price || '',
+        is_sale: !!initialData.is_sale,
         stock: initialData.stock || '',
         images: [],
         imagePreviews: [],
@@ -66,6 +70,8 @@ const ProductForm = ({ onSubmit, initialData, onCancel }) => {
         product_name: '',
         category: '',
         price: '',
+        discount_price: '',
+        is_sale: false,
         stock: '',
         images: [],
         imagePreviews: [],
@@ -85,6 +91,9 @@ const ProductForm = ({ onSubmit, initialData, onCancel }) => {
     if (!formData.product_name) newErrors.product_name = 'Product name is required';
     if (!formData.category) newErrors.category = 'Category is required';
     if (!formData.price || formData.price <= 0) newErrors.price = 'Valid price is required';
+    if (formData.discount_price && Number(formData.discount_price) > Number(formData.price)) {
+      newErrors.discount_price = 'Discount price must be less than or equal to price';
+    }
     if (!formData.stock || formData.stock < 0) newErrors.stock = 'Valid stock quantity is required';
     if (!formData.slug) newErrors.slug = 'Slug is required';
     
@@ -118,7 +127,16 @@ const ProductForm = ({ onSubmit, initialData, onCancel }) => {
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
 
-    if (name === 'images' && files && files.length > 0) {
+    if (type === 'checkbox') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: e.target.checked
+      }));
+
+      if (errors[name]) {
+        setErrors(prev => ({ ...prev, [name]: '' }));
+      }
+    } else if (name === 'images' && files && files.length > 0) {
       const newFiles = Array.from(files);
       
       // Validate file types immediately
@@ -197,8 +215,8 @@ const removeExistingImage = async (imageId) => {
     // Use the correct route parameters - 'product' and 'image'
     const response = await axios.delete(
       route('ourproducts.images.destroy', { 
-        product: initialData.id, 
-        image: imageId 
+        id: initialData.id, 
+        imageId: imageId 
       }), 
       {
         headers: {
@@ -237,6 +255,8 @@ const removeExistingImage = async (imageId) => {
     submitData.append('product_name', formData.product_name);
     submitData.append('category', formData.category);
     submitData.append('price', formData.price);
+    submitData.append('discount_price', formData.discount_price || '');
+    submitData.append('is_sale', formData.is_sale ? '1' : '0');
     submitData.append('stock', formData.stock);
     submitData.append('description', formData.description);
     submitData.append('size', formData.size);
@@ -332,7 +352,7 @@ const removeExistingImage = async (imageId) => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Price ($)*
+              Price (NPR)*
             </label>
             <input
               type="number"
@@ -348,6 +368,26 @@ const removeExistingImage = async (imageId) => {
             />
             {errors.price && (
               <p className="mt-1 text-sm text-red-600">{errors.price}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Discount Price (NPR)
+            </label>
+            <input
+              type="number"
+              name="discount_price"
+              value={formData.discount_price}
+              onChange={handleChange}
+              min="0"
+              step="0.01"
+              className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.discount_price ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            {errors.discount_price && (
+              <p className="mt-1 text-sm text-red-600">{errors.discount_price}</p>
             )}
           </div>
           
@@ -369,6 +409,20 @@ const removeExistingImage = async (imageId) => {
             {errors.stock && (
               <p className="mt-1 text-sm text-red-600">{errors.stock}</p>
             )}
+          </div>
+
+          <div className="flex items-center gap-3 pt-8">
+            <input
+              id="is_sale"
+              type="checkbox"
+              name="is_sale"
+              checked={formData.is_sale}
+              onChange={handleChange}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label htmlFor="is_sale" className="text-sm font-medium text-gray-700">
+              Show this product in sale section
+            </label>
           </div>
           
           <div className="md:col-span-2">
