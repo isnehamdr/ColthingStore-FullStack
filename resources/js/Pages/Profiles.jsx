@@ -22,7 +22,7 @@ import { usePage, router } from "@inertiajs/react";
 import { useCart } from '../contexts/CartContext';
 import { DEFAULT_AVATAR, DEFAULT_PRODUCT_IMAGE, getImageUrl, getUserImage } from '@/utils/media';
 import { formatNpr } from '@/utils/storefront';
-
+ const imgurl = import.meta.env.VITE_IMAGE_PATH;
 const Profiles = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
@@ -296,7 +296,7 @@ const Profiles = () => {
                 {/* Profile Image */}
                 <div className="relative flex-shrink-0">
                   <img
-                    src={imagePreview}
+                     src={`${imgurl}/${imagePreview}`}
                     alt="Profile"
                     className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover border border-gray-300"
                     onError={(e) => {
@@ -554,7 +554,8 @@ const Profiles = () => {
                           {order.items?.map((item) => (
                             <div key={item.id} className="flex items-center gap-3 md:gap-4">
                               <img
-                                src={getImageUrl(item.image, DEFAULT_PRODUCT_IMAGE)}
+                                // src={getImageUrl(item.image, DEFAULT_PRODUCT_IMAGE)}
+                                 src={`${imgurl}/${item.image, DEFAULT_PRODUCT_IMAGE}`}
                                 alt={item.product_name}
                                 className="w-12 h-12 md:w-16 md:h-16 object-cover rounded flex-shrink-0"
                                 onError={(e) => {
@@ -621,7 +622,8 @@ const Profiles = () => {
                       {cart.map((item) => (
                         <div key={item.productId} className="flex items-center gap-3 md:gap-4 p-3 md:p-4 border border-gray-200 rounded-lg">
                           <img
-                            src={getImageUrl(item.image, DEFAULT_PRODUCT_IMAGE)}
+                           src={`${imgurl}/${item.image, DEFAULT_PRODUCT_IMAGE}`}
+                            // src={getImageUrl(item.image, DEFAULT_PRODUCT_IMAGE)}
                             alt={item.title || item.name}
                             className="w-16 h-16 md:w-20 md:h-20 object-cover rounded flex-shrink-0"
                             onError={(e) => {

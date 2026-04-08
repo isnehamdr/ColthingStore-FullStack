@@ -8,6 +8,7 @@ import axios from 'axios';
 const Categorypage = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+ const imgurl = import.meta.env.VITE_IMAGE_PATH;
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -61,7 +62,8 @@ const Categorypage = () => {
             <Link href={item.route} className="block w-full h-full">
               <img
                 className="w-full h-full object-cover object-[59%_22%] group-hover:scale-105 transition-transform duration-300"
-                src={item.src}
+             
+                src={`${imgurl}/${item.src}`}
                 alt={item.label}
               />
             </Link>
@@ -109,7 +111,8 @@ const Categorypage = () => {
                   <div className="relative h-[60vh] min-h-[450px] max-h-[450px]">
                     <img
                       className="w-full h-full object-cover object-center"
-                      src={item.src}
+                     
+                      src={`${imgurl}/${item.src}`}
                       alt={item.label}
                     />
                     {/* Gradient overlay for better button visibility */}

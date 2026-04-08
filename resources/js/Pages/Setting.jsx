@@ -14,6 +14,7 @@ import {DEFAULT_AVATAR, getUserImage} from '@/utils/media';
 // ✅ Inline SVG fallback — no external file needed, never 404s
 
 // const IMAGE_PATH = import.meta.env.VITE_IMAGE_PATH || 'http://127.0.0.1:8000/storage';
+  const imgurl = import.meta.env.VITE_IMAGE_PATH;
 
 
 const Setting = () => {
@@ -198,7 +199,8 @@ const Setting = () => {
 				<div className="flex items-center space-x-4">
 					<div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center overflow-hidden">
 						<img
-							src={imagePreview}
+							// src={imagePreview}
+							 src={`${imgurl}/${imagePreview}`}
 							alt="Profile"
 							className="w-full h-full object-cover"
 							onError={(e) => {
@@ -374,7 +376,8 @@ const Setting = () => {
 							<p className="text-sm text-gray-500 mt-0.5">Manage your account preferences</p>
 						</div>
 						<img
-							src={getUserImage(auth.user)}
+							// src={getUserImage(auth.user)}
+							 src={`${imgurl}/${getUserImage(auth.user)}`}
 							alt={auth.user?.name || 'User'}
 							className="w-10 h-10 rounded-full object-cover border border-gray-200"
 							onError={(e) => {

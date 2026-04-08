@@ -9,6 +9,7 @@ import 'slick-carousel/slick/slick-theme.css';
 const Category = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const imgurl = import.meta.env.VITE_IMAGE_PATH;
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -25,6 +26,9 @@ const Category = () => {
 
     fetchCategories();
   }, []);
+
+
+  console.log(categories);
 
   const sliderSettings = {
     dots: true,
@@ -61,7 +65,7 @@ const Category = () => {
             <Link href={item.route} className="block w-full h-full">
               <img
                 className="w-full h-full object-cover object-[59%_22%] group-hover:scale-105 transition-transform duration-300"
-                src={item.src}
+                src={`${imgurl}/${item.src}`}
                 alt={item.label}
               />
             </Link>
@@ -108,7 +112,7 @@ const Category = () => {
                   <div className="relative h-[60vh] min-h-[450px] max-h-[450px]">
                     <img
                       className="w-full h-full object-cover object-center"
-                      src={item.src}
+                      src={`${imgurl}/${item.src}`}
                       alt={item.label}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
